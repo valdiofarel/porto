@@ -1,8 +1,8 @@
 'use strict';
 
 /* ══════════════════════════════════════
-   FAREL GANTENG — main.js FINAL
-   Cursor fix, Lightbox, Form + Fallback
+   FAREL GANTENG — main.js
+   Book Gallery Edition
    ══════════════════════════════════════ */
 
 /* ─── SCROLL PROGRESS BAR ─── */
@@ -74,7 +74,7 @@ function updateDots() {
 window.addEventListener('scroll', updateDots, { passive: true });
 updateDots();
 
-/* ═══ CURSOR SYSTEM (visibility fix) ═══ */
+/* ═══ CURSOR SYSTEM ═══ */
 const cursor      = document.getElementById('cursor');
 const cursorDot   = document.getElementById('cursor-dot');
 const cursorTrail = document.getElementById('cursor-trail');
@@ -87,8 +87,9 @@ let cursorVisible = false;
 
 function setCursorVisibility(visible) {
   cursorVisible = visible;
-  const els = [cursor, cursorDot, cursorTrail, cursorLabel];
-  els.forEach(el => { if (el) el.style.visibility = visible ? 'visible' : 'hidden'; });
+  [cursor, cursorDot, cursorTrail, cursorLabel].forEach(el => {
+    if (el) el.style.visibility = visible ? 'visible' : 'hidden';
+  });
 }
 setCursorVisibility(false);
 
@@ -99,7 +100,6 @@ document.addEventListener('mousemove', e => {
   if (cursorLabel) { cursorLabel.style.left = mx + 'px'; cursorLabel.style.top = my + 'px'; }
   if (!cursorVisible) setCursorVisibility(true);
 });
-
 document.addEventListener('mouseleave', () => setCursorVisibility(false));
 document.addEventListener('mouseenter', () => setCursorVisibility(true));
 
@@ -110,7 +110,7 @@ document.addEventListener('mouseenter', () => setCursorVisibility(true));
   requestAnimationFrame(animTrail);
 })();
 
-document.querySelectorAll('a, button, .btn, .masonry-item, .filter-pill, .skill-card, .contact-chip, .s-dot, .social-btn').forEach(el => {
+document.querySelectorAll('a, button, .btn, .book-album, .skill-card, .contact-chip, .s-dot, .social-btn, .gallery-polaroid').forEach(el => {
   el.addEventListener('mouseenter', () => {
     document.body.classList.add('hovering');
     const label = el.dataset.cursorLabel || '';
@@ -163,7 +163,7 @@ document.querySelectorAll('.btn-grad').forEach(btn => {
 });
 
 document.querySelectorAll('.btn').forEach(btn => {
-  btn.addEventListener('mouseenter', function(e) {
+  btn.addEventListener('mouseenter', function() {
     for (let i = 0; i < 5; i++) {
       const p = document.createElement('div');
       p.style.cssText = `position:absolute; pointer-events:none; width:4px; height:4px; border-radius:50%; background: var(--yellow); top:${Math.random()*100}%; left:${Math.random()*100}%; opacity:0.8; z-index:0;`;
@@ -203,13 +203,6 @@ const skillBento = document.querySelector('.skills-bento');
 if (skillBento) {
   skillBento.querySelectorAll('.skill-card').forEach(c => { c.style.opacity = '0'; c.style.transform = 'translateY(30px)'; c.style.transition = 'opacity 0.6s cubic-bezier(.16,1,.3,1), transform 0.6s cubic-bezier(.16,1,.3,1)'; });
   new IntersectionObserver(entries => { entries.forEach(entry => { if (entry.isIntersecting) { entry.target.querySelectorAll('.skill-card').forEach((c,i) => { setTimeout(() => { c.style.opacity='1'; c.style.transform='translateY(0)'; }, i*80); }); } }); }, { threshold: 0.1 }).observe(skillBento);
-}
-
-/* ─── STAGGER MASONRY ITEMS (THUMBNAILS) ─── */
-const masonryGrid = document.getElementById('masonry-grid');
-if (masonryGrid) {
-  masonryGrid.querySelectorAll('.masonry-item').forEach((item,i) => { item.style.opacity = '0'; item.style.transform = 'translateY(25px) scale(0.96)'; item.style.transition = `opacity 0.55s ease ${i*70}ms, transform 0.55s ease ${i*70}ms`; });
-  new IntersectionObserver(entries => { entries.forEach(entry => { if (entry.isIntersecting) { entry.target.querySelectorAll('.masonry-item').forEach(item => { item.style.opacity = '1'; item.style.transform = 'translateY(0) scale(1)'; }); } }); }, { threshold: 0.05 }).observe(masonryGrid);
 }
 
 /* ─── STAGGER CONTACT CHIPS ─── */
@@ -259,29 +252,430 @@ new IntersectionObserver(entries => {
   });
 }, { threshold: 0.5 }).observe(document.querySelector('.hero-stats') || document.body);
 
-/* ─── PORTFOLIO FILTER ─── */
-document.querySelectorAll('.filter-pill').forEach(pill => {
-  pill.addEventListener('click', function() {
-    document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
-    this.classList.add('active');
-    const cat = this.dataset.filter;
-    document.querySelectorAll('.masonry-item').forEach(item => {
-      const show = cat==='all' || item.dataset.cat===cat;
-      item.style.transition = 'opacity 0.35s cubic-bezier(.16,1,.3,1), transform 0.35s cubic-bezier(.16,1,.3,1)';
-      item.style.opacity = show ? '1' : '0.12';
-      item.style.transform = show ? 'scale(1)' : 'scale(0.93)';
-      item.style.pointerEvents = show ? '' : 'none';
-    });
-  });
+/* ═══════════════════════════════════════════════════
+   BOOK GALLERY — Portfolio Section
+   Menggantikan masonry grid + filter pill lama
+   ═══════════════════════════════════════════════════ */
+
+/* ┌─────────────────────────────────────────────────────────────────┐
+   │  ✏️  PANDUAN UPDATE FOTO & ALBUM                               │
+   │                                                                 │
+   │  ① TAMBAH FOTO ke album yang ada:                              │
+   │     Cari albumnya di bawah (mis. hobi: { ... })               │
+   │     Tambahkan baris baru di dalam items: [ ... ]:             │
+   │     { src: 'img/namafile.jpg', title: '...', desc: '...' },   │
+   │     Taruh file foto di folder img/                             │
+   │                                                                 │
+   │  ② TAMBAH ALBUM BARU:                                          │
+   │     1. Copy salah satu blok di bawah (mis. sd: { ... })       │
+   │     2. Ganti key-nya (mis. kuliah: { ... })                   │
+   │     3. Di index.html, duplikat <div class="book-album-wrap">  │
+   │        lalu ganti data-book="kuliah" dan id="count-kuliah"    │
+   │     4. Di CSS di index.html, tambahkan warna baru:            │
+   │        .book-album[data-book="kuliah"] { --book-bg:...; }     │
+   │                                                                 │
+   │  ③ UBAH FOTO: ganti nilai src dengan nama file baru            │
+   │                                                                 │
+   └─────────────────────────────────────────────────────────────────┘ */
+
+/* Data foto per kategori — ✏️ EDIT DI SINI untuk tambah/ubah foto */
+const galleryData = {
+
+  /* ── PROYEK ──────────────────────────────────────────────── */
+  proyek: {
+    label : 'Proyek',
+    icon  : '🔧',
+    color : '#1d4ed8',
+    items : [
+      { src: 'img/port-proyek1.jpeg', title: 'Monitoring Jaringan',   desc: 'Konfigurasi & monitoring di instansi' },
+      { src: 'img/port-proyek2.png',  title: 'Dokumentasi Helpdesk',  desc: 'Sistem tiket & dokumentasi teknis'  },
+      /* ✏️ Tambah proyek baru di bawah ini:
+      { src: 'img/port-proyek3.jpg', title: 'Nama Proyek', desc: 'Deskripsi singkat' },
+      */
+    ]
+  },
+
+  /* ── PENDIDIKAN: SD ──────────────────────────────────────── */
+  sd: {
+    label : 'SD',
+    icon  : '🏫',
+    color : '#ca8a04',
+    items : [
+      /* ✏️ Tambah foto kenangan SD di sini, contoh:
+      { src: 'img/sd-wisuda.jpg',   title: 'Wisuda SD',       desc: 'Lulus dengan bangga' },
+      { src: 'img/sd-teman.jpg',    title: 'Teman-teman SD',  desc: 'Geng pas kecil' },
+      */
+    ]
+  },
+
+  /* ── PENDIDIKAN: SMP ─────────────────────────────────────── */
+  smp: {
+    label : 'SMP',
+    icon  : '📐',
+    color : '#1d4ed8',
+    items : [
+      /* ✏️ Tambah foto kenangan SMP di sini, contoh:
+      { src: 'img/smp-ekskul.jpg',  title: 'Ekskul Pramuka',  desc: 'Aktif organisasi' },
+      { src: 'img/smp-kelas.jpg',   title: 'Foto Kelas',      desc: 'Kelas 9 terbaik' },
+      */
+    ]
+  },
+
+  /* ── PENDIDIKAN: SMA ─────────────────────────────────────── */
+  sma: {
+    label : 'SMA',
+    icon  : '🎓',
+    color : '#b45309',
+    items : [
+      /* ✏️ Tambah foto kenangan SMA di sini, contoh:
+      { src: 'img/sma-prakerin.jpg', title: 'Prakerin',        desc: 'Magang SMK / Praktek industri' },
+      { src: 'img/sma-lulus.jpg',    title: 'Kelulusan',       desc: 'Akhirnya lulus!' },
+      */
+    ]
+  },
+
+  /* ── HOBI ────────────────────────────────────────────────── */
+  hobi: {
+    label : 'Hobi',
+    icon  : '🌟',
+    color : '#4338ca',
+    items : [
+      { src: 'img/port-hobi1.jpeg', title: 'Fotografi Jalanan',   desc: 'Menangkap momen sehari-hari' },
+      { src: 'img/port-hobi2.jpeg', title: 'Koleksi Stiker',      desc: 'Mengoleksi stiker unik'      },
+      { src: 'img/port-hobi3.jpeg', title: 'Ngopi Sore',          desc: 'Ritual ngopi sambil ngoprek' },
+      { src: 'img/port-hobi4.jpeg', title: 'Meme Buatan Sendiri', desc: 'Kreasi meme sehari-hari'     },
+      /* ✏️ Tambah hobi baru di bawah ini:
+      { src: 'img/hobi-baru.jpg',  title: 'Judul Hobi', desc: 'Deskripsi' },
+      */
+    ]
+  }
+
+  /* ✏️ ── ALBUM BARU — Salin blok ini dan ganti isinya ──
+  ,namaBaru: {
+    label : 'Nama Album',
+    icon  : '📷',
+    color : '#2563eb',
+    items : [
+      { src: 'img/foto1.jpg', title: 'Judul Foto', desc: 'Deskripsi' },
+    ]
+  }
+  */
+};
+
+/* Update jumlah foto di sampul buku */
+Object.keys(galleryData).forEach(key => {
+  const el = document.getElementById('count-' + key);
+  if (el) el.textContent = galleryData[key].items.length + ' foto';
 });
 
-/* ─── LIGHTBOX ─── */
+/* ── State ── */
+let currentBook = null;   // key aktif ('proyek' / 'pendidikan' / 'hobi')
+let currentPage = 0;      // indeks halaman (0-based)
+const perPage   = () => window.innerWidth <= 640 ? 1 : 2;  // responsif
+
+/* ── Elemen ── */
+const bookShelf         = document.getElementById('book-shelf');
+const galleryPanel      = document.getElementById('gallery-panel');
+const galleryPanelTitle = document.getElementById('gallery-panel-title');
+const galleryPanelCount = document.getElementById('gallery-panel-count');
+const gallerySpread     = document.getElementById('gallery-spread');
+const galleryDots       = document.getElementById('gallery-dots');
+const galleryPrev       = document.getElementById('gallery-prev');
+const galleryNext       = document.getElementById('gallery-next');
+const galleryBack       = document.getElementById('gallery-back');
+
+/* ── Hitung total halaman ── */
+function totalPages() {
+  if (!currentBook) return 0;
+  return Math.ceil(galleryData[currentBook].items.length / perPage());
+}
+
+/* ── Buka album ── */
+function openBook(key) {
+  if (!galleryData[key]) return;
+  currentBook = key;
+  currentPage = 0;
+
+  const data = galleryData[key];
+  galleryPanelTitle.textContent = data.icon + '  ' + data.label;
+  galleryPanelTitle.style.color = data.color;
+
+  /* Sembunyikan rak dengan animasi */
+  bookShelf.classList.add('bg-hidden');
+
+  setTimeout(() => {
+    galleryPanel.style.display = 'block';
+    /* double-rAF agar display:block sudah ter-render sebelum class ditambah */
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      galleryPanel.classList.add('panel-active');
+    }));
+    renderSpread(false);
+  }, 320);
+}
+
+/* ── Tutup album ── */
+function closeBook() {
+  galleryPanel.classList.remove('panel-active');
+  setTimeout(() => {
+    galleryPanel.style.display = 'none';
+    bookShelf.classList.remove('bg-hidden');
+    currentBook = null;
+  }, 420);
+}
+
+/* ── Render spread (2 atau 1 foto) ── */
+function renderSpread(animate) {
+  if (!currentBook) return;
+
+  const data     = galleryData[currentBook];
+  const pp       = perPage();
+  const startIdx = currentPage * pp;
+  const items    = data.items.slice(startIdx, startIdx + pp);
+
+  /* Update header count */
+  if (data.items.length === 0) {
+    galleryPanelCount.textContent = 'Belum ada foto';
+  } else {
+    galleryPanelCount.textContent = 'Hal. ' + (currentPage + 1) + ' / ' + totalPages();
+  }
+
+  /* Update nav buttons */
+  galleryPrev.disabled = currentPage === 0;
+  galleryNext.disabled = currentPage >= totalPages() - 1 || data.items.length === 0;
+
+  /* Empty state */
+  if (data.items.length === 0) {
+    gallerySpread.style.gridTemplateColumns = '1fr';
+    gallerySpread.innerHTML = `
+      <div style="
+        display:flex; flex-direction:column; align-items:center; justify-content:center;
+        gap:.8rem; padding:3rem 1rem; text-align:center;
+        border:2px dashed rgba(255,255,255,.12); border-radius:14px;
+        min-height:220px;
+      ">
+        <span style="font-size:2.8rem; opacity:.5;">📷</span>
+        <div style="font-family:'Syne',sans-serif; font-weight:800; font-size:1rem; color:rgba(255,255,255,.5);">
+          Album Masih Kosong
+        </div>
+        <div style="font-size:.75rem; color:rgba(255,255,255,.3); max-width:260px; line-height:1.6;">
+          Tambahkan foto di <code style="background:rgba(255,255,255,.08); padding:1px 6px; border-radius:4px;">js/main.js</code>
+          pada bagian <code style="background:rgba(255,255,255,.08); padding:1px 6px; border-radius:4px;">${currentBook}: { items: [ ... ] }</code>
+        </div>
+        <button onclick="document.getElementById('book-placeholder').click(); document.getElementById('gallery-back').click();"
+          style="
+            margin-top:.4rem; padding:.4rem 1.1rem;
+            background:rgba(251,191,36,.15); border:1px solid rgba(251,191,36,.35);
+            color:#fbbf24; border-radius:20px; cursor:pointer; font-size:.72rem;
+            font-family:'DM Mono',monospace;
+          ">
+          📖 Lihat Panduan
+        </button>
+      </div>
+    `;
+    galleryDots.innerHTML = '';
+    return;
+  }
+
+  gallerySpread.style.gridTemplateColumns = pp === 1 ? '1fr' : '1fr 1fr';
+
+  /* Render polaroid cards */
+  gallerySpread.innerHTML = '';
+  items.forEach((item, i) => {
+    const pol = document.createElement('div');
+    pol.className  = 'gallery-polaroid';
+    pol.role       = 'listitem';
+    pol.title      = 'Klik untuk perbesar — ' + item.title;
+    pol.dataset.cursorLabel = '🔍 Lihat';
+
+    pol.innerHTML = `
+      <img src="${item.src}" alt="${item.title}" loading="lazy">
+      <div class="gal-placeholder" style="display:none; background:linear-gradient(135deg,${data.color}28,${data.color}55);">
+        <span style="font-size:2.6rem;">${data.icon}</span>
+      </div>
+      <div class="gallery-polaroid-info">
+        <div class="gal-pol-title">${item.title}</div>
+        <div class="gal-pol-desc">${item.desc}</div>
+      </div>
+    `;
+
+    const img = pol.querySelector('img');
+    img.addEventListener('error', () => {
+      img.style.display = 'none';
+      pol.querySelector('.gal-placeholder').style.display = 'flex';
+    });
+
+    pol.addEventListener('mouseenter', () => {
+      document.body.classList.add('hovering');
+      if (cursorLabel) cursorLabel.textContent = '🔍';
+    });
+    pol.addEventListener('mouseleave', () => {
+      document.body.classList.remove('hovering');
+      if (cursorLabel) cursorLabel.textContent = '';
+    });
+
+    pol.addEventListener('click', () => {
+      if (img.style.display !== 'none') openLightbox(item.src);
+    });
+
+    const baseRot = i % 2 === 0 ? 'rotate(-2deg)' : 'rotate(1.5deg) translateY(10px)';
+    pol.style.opacity    = '0';
+    pol.style.transform  = `${baseRot} translateY(24px)`;
+    pol.style.transition = `opacity .38s ${i * 90}ms ease, transform .38s ${i * 90}ms cubic-bezier(.16,1,.3,1), box-shadow .3s ease`;
+
+    gallerySpread.appendChild(pol);
+
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      pol.style.opacity   = '1';
+      pol.style.transform = baseRot;
+    }));
+
+    pol.addEventListener('mouseenter', () => {
+      pol.style.transform = 'rotate(0deg) scale(1.05) translateY(-10px)';
+      pol.style.zIndex    = '10';
+    });
+    pol.addEventListener('mouseleave', () => {
+      pol.style.transform = baseRot;
+      pol.style.zIndex    = '';
+    });
+  });
+
+  /* Render dot indicators */
+  galleryDots.innerHTML = '';
+  const total = totalPages();
+  for (let i = 0; i < total; i++) {
+    const dot = document.createElement('button');
+    dot.className        = 'g-dot' + (i === currentPage ? ' g-dot-active' : '');
+    dot.style.background = i === currentPage ? data.color : '';
+    dot.setAttribute('role', 'tab');
+    dot.setAttribute('aria-label', 'Halaman ' + (i + 1));
+    dot.setAttribute('aria-selected', i === currentPage ? 'true' : 'false');
+    dot.addEventListener('click', () => goToPage(i));
+    galleryDots.appendChild(dot);
+  }
+}
+
+/* ── Navigasi halaman (dengan animasi slide) ── */
+function goToPage(page) {
+  if (!currentBook || page === currentPage) return;
+
+  const dir = page > currentPage ? 1 : -1;
+
+  /* Fade + slide out */
+  gallerySpread.style.transition = 'opacity .22s ease, transform .22s ease';
+  gallerySpread.style.opacity    = '0';
+  gallerySpread.style.transform  = `translateX(${dir * 38}px)`;
+
+  setTimeout(() => {
+    currentPage = page;
+
+    /* Posisi awal dari sisi berlawanan */
+    gallerySpread.style.transition = 'none';
+    gallerySpread.style.transform  = `translateX(${-dir * 38}px)`;
+
+    renderSpread(true);
+
+    /* Fade + slide in */
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      gallerySpread.style.transition = 'opacity .34s cubic-bezier(.16,1,.3,1), transform .34s cubic-bezier(.16,1,.3,1)';
+      gallerySpread.style.opacity    = '1';
+      gallerySpread.style.transform  = 'translateX(0)';
+    }));
+  }, 220);
+}
+
+/* ── Event listeners navigasi ── */
+galleryPrev?.addEventListener('click', () => {
+  if (currentPage > 0) goToPage(currentPage - 1);
+});
+galleryNext?.addEventListener('click', () => {
+  if (currentBook && currentPage < totalPages() - 1) goToPage(currentPage + 1);
+});
+galleryBack?.addEventListener('click', closeBook);
+
+/* ── Buku diklik ── */
+document.querySelectorAll('.book-album').forEach(book => {
+  book.addEventListener('click',   () => openBook(book.dataset.book));
+  book.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openBook(book.dataset.book); }
+  });
+  book.dataset.cursorLabel = '📖 Buka';
+});
+
+/* ── Placeholder "+": toggle panduan update ── */
+const bookPlaceholder = document.getElementById('book-placeholder');
+const updateGuide     = document.getElementById('update-guide');
+const guideClose      = document.getElementById('guide-close');
+
+function showGuide() {
+  if (!updateGuide) return;
+  updateGuide.style.display = 'block';
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    updateGuide.style.opacity   = '1';
+    updateGuide.style.transform = 'translateY(0)';
+  }));
+}
+function hideGuide() {
+  if (!updateGuide) return;
+  updateGuide.style.opacity   = '0';
+  updateGuide.style.transform = 'translateY(16px)';
+  setTimeout(() => { updateGuide.style.display = 'none'; }, 400);
+}
+
+bookPlaceholder?.addEventListener('click',   showGuide);
+bookPlaceholder?.addEventListener('keydown', e => { if (e.key==='Enter'||e.key===' ') { e.preventDefault(); showGuide(); } });
+guideClose?.addEventListener('click', hideGuide);
+
+/* ── Keyboard navigation ── */
+document.addEventListener('keydown', e => {
+  if (!currentBook) return;
+
+  /* Jangan ganggu lightbox */
+  if (document.querySelector('.lightbox.active')) return;
+
+  if (e.key === 'ArrowRight' && currentPage < totalPages() - 1) {
+    goToPage(currentPage + 1);
+  } else if (e.key === 'ArrowLeft' && currentPage > 0) {
+    goToPage(currentPage - 1);
+  } else if (e.key === 'Escape') {
+    closeBook();
+  }
+});
+
+/* ── Touch/swipe support (mobile) ── */
+let touchStartX = 0;
+gallerySpread?.addEventListener('touchstart', e => {
+  touchStartX = e.touches[0].clientX;
+}, { passive: true });
+gallerySpread?.addEventListener('touchend', e => {
+  const diff = touchStartX - e.changedTouches[0].clientX;
+  if (Math.abs(diff) < 48) return; /* threshold minimal 48px */
+  if (diff > 0 && currentBook && currentPage < totalPages() - 1) goToPage(currentPage + 1);
+  else if (diff < 0 && currentPage > 0) goToPage(currentPage - 1);
+}, { passive: true });
+
+/* ── Re-render saat resize (perPage bisa berubah) ── */
+let resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    if (currentBook) {
+      /* Sesuaikan currentPage agar tidak out-of-range */
+      const max = totalPages() - 1;
+      if (currentPage > max) currentPage = max;
+      renderSpread(false);
+    }
+  }, 250);
+}, { passive: true });
+
+/* ════════════════════════════════
+   LIGHTBOX
+   ════════════════════════════════ */
 const lightbox = document.createElement('div');
 lightbox.className = 'lightbox';
 lightbox.innerHTML = `<button class="lightbox-close">×</button><img class="lightbox-img" src="" alt="Preview">`;
 document.body.appendChild(lightbox);
 
-const lightboxImg = lightbox.querySelector('.lightbox-img');
+const lightboxImg   = lightbox.querySelector('.lightbox-img');
 const lightboxClose = lightbox.querySelector('.lightbox-close');
 
 function openLightbox(src) {
@@ -296,22 +690,17 @@ function closeLightbox() {
 
 lightboxClose.addEventListener('click', closeLightbox);
 lightbox.addEventListener('click', e => { if (e.target === lightbox) closeLightbox(); });
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
-
-// Attach click to masonry items
-document.querySelectorAll('.masonry-item').forEach(item => {
-  item.addEventListener('click', function(e) {
-    if (this.classList.contains('placeholder-mode')) return;
-    const fullSrc = this.dataset.full;
-    if (fullSrc) openLightbox(fullSrc);
-  });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && lightbox.classList.contains('active')) closeLightbox();
 });
 
-// Remove old modal if present
+/* Bersihkan modal lama jika ada */
 const oldModal = document.getElementById('modal-bg');
 if (oldModal) oldModal.remove();
 
-/* ─── CONTACT FORM ─── */
+/* ════════════════════════════════
+   CONTACT FORM
+   ════════════════════════════════ */
 document.getElementById('contact-form')?.addEventListener('submit', async function(e) {
   e.preventDefault();
   const btn  = this.querySelector('button[type=submit]');
@@ -356,7 +745,6 @@ document.getElementById('contact-form')?.addEventListener('submit', async functi
     btn.innerHTML = '✗ Gagal, buka email?';
     showToast('Gagal kirim. Membuka email cadangan...');
     const nama  = encodeURIComponent(this.nama.value);
-    const email = encodeURIComponent(this.email.value);
     const pesan = encodeURIComponent(this.pesan.value);
     setTimeout(() => {
       window.location.href = `mailto:valdiofarel28@gmail.com?subject=Portfolio%20Pesan%20dari%20${nama}&body=${pesan}`;
@@ -365,9 +753,9 @@ document.getElementById('contact-form')?.addEventListener('submit', async functi
   }
 });
 
-/* ─── TOAST ─── */
+/* ── TOAST ── */
 function showToast(msg) {
-  const toast = document.getElementById('toast');
+  const toast    = document.getElementById('toast');
   const toastMsg = document.getElementById('toast-msg');
   if (!toast) return;
   toastMsg.textContent = msg;
@@ -376,7 +764,7 @@ function showToast(msg) {
   toast._timer = setTimeout(() => toast.classList.remove('show'), 4000);
 }
 
-/* ─── SMOOTH SCROLL ─── */
+/* ── SMOOTH SCROLL ── */
 document.querySelectorAll('a[href^="#"]').forEach(a => {
   a.addEventListener('click', e => {
     const target = document.querySelector(a.getAttribute('href'));
@@ -384,7 +772,7 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
   });
 });
 
-/* ─── PARALLAX BG SHAPES ─── */
+/* ── PARALLAX BG SHAPES ── */
 window.addEventListener('scroll', () => {
   const y = window.scrollY;
   const s1 = document.querySelector('.shape-1'), s2 = document.querySelector('.shape-2');
@@ -392,7 +780,7 @@ window.addEventListener('scroll', () => {
   if (s2) s2.style.transform = `translateY(${-y*0.1}px)`;
 }, { passive: true });
 
-/* ─── CURSOR LABEL FOR CONTACT CHIPS ─── */
+/* ── CURSOR LABEL FOR CONTACT CHIPS ── */
 document.querySelectorAll('.contact-chip').forEach(chip => {
   const icon = chip.querySelector('.contact-chip-icon');
   const emoji = icon?.textContent?.trim();
@@ -400,7 +788,7 @@ document.querySelectorAll('.contact-chip').forEach(chip => {
   chip.dataset.cursorLabel = labelMap[emoji] || 'Visit';
 });
 
-/* ─── INJECT MISSING ELEMENTS ─── */
+/* ── INJECT MISSING ELEMENTS ── */
 if (!document.getElementById('cursor-dot')) {
   const dot = document.createElement('div'); dot.id='cursor-dot'; document.body.appendChild(dot);
 }
