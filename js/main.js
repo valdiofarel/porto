@@ -2,7 +2,7 @@
 
 /* ══════════════════════════════════════
    FAREL GANTENG — main.js
-   Book Gallery Edition
+   Book Gallery Edition (Pendidikan Tabs)
    ══════════════════════════════════════ */
 
 /* ─── SCROLL PROGRESS BAR ─── */
@@ -179,7 +179,7 @@ document.querySelectorAll('.btn').forEach(btn => {
 
 /* ─── TYPEWRITER ─── */
 const typeEl = document.getElementById('typewriter');
-const texts  = ['Pengoprek Jaringan 🌐','Peminum Kopi ☕','Pencinta Kucing 🐱','Belajar HTML/CSS 💻','Tiyang Alit ✨'];
+const texts  = ['Kata kata hari ini','Hwaiting!','اِنَّ مَعَ الْعُسْرِ يُسْرًاۗ','Acta non verba','Pluk de dag'];
 let ti=0, ci=0, deleting=false;
 function typeLoop() {
   if (!typeEl) return;
@@ -254,31 +254,34 @@ new IntersectionObserver(entries => {
 
 /* ═══════════════════════════════════════════════════
    BOOK GALLERY — Portfolio Section
-   Menggantikan masonry grid + filter pill lama
-   ═══════════════════════════════════════════════════ */
+   ═══════════════════════════════════════════════════
 
-/* ┌─────────────────────────────────────────────────────────────────┐
-   │  ✏️  PANDUAN UPDATE FOTO & ALBUM                               │
-   │                                                                 │
-   │  ① TAMBAH FOTO ke album yang ada:                              │
-   │     Cari albumnya di bawah (mis. hobi: { ... })               │
-   │     Tambahkan baris baru di dalam items: [ ... ]:             │
-   │     { src: 'img/namafile.jpg', title: '...', desc: '...' },   │
-   │     Taruh file foto di folder img/                             │
-   │                                                                 │
-   │  ② TAMBAH ALBUM BARU:                                          │
-   │     1. Copy salah satu blok di bawah (mis. sd: { ... })       │
-   │     2. Ganti key-nya (mis. kuliah: { ... })                   │
-   │     3. Di index.html, duplikat <div class="book-album-wrap">  │
-   │        lalu ganti data-book="kuliah" dan id="count-kuliah"    │
-   │     4. Di CSS di index.html, tambahkan warna baru:            │
-   │        .book-album[data-book="kuliah"] { --book-bg:...; }     │
-   │                                                                 │
-   │  ③ UBAH FOTO: ganti nilai src dengan nama file baru            │
-   │                                                                 │
-   └─────────────────────────────────────────────────────────────────┘ */
+   PANDUAN UPDATE FOTO (simpan panduan ini untuk kamu sendiri):
 
-/* Data foto per kategori — ✏️ EDIT DI SINI untuk tambah/ubah foto */
+   ① TAMBAH FOTO ke album yang ada:
+      Cari albumnya di bawah (mis. hobi: { ... })
+      Tambahkan baris baru di dalam items: [ ... ]:
+      { src: 'img/namafile.jpg', title: '...', desc: '...' },
+      Taruh file foto di folder img/
+
+   ② UNTUK PENDIDIKAN (SD/SMP/SMA):
+      Masing-masing punya items sendiri di dalam:
+        pendidikan.tabs.sd.items  → foto SD
+        pendidikan.tabs.smp.items → foto SMP
+        pendidikan.tabs.sma.items → foto SMA
+
+   ③ TAMBAH ALBUM BARU (mis. "Kuliah"):
+      1. Copy blok album (mis. hobi: { ... }) di bawah
+      2. Ganti key-nya: kuliah: { label: 'Kuliah', icon: '🎓', ... }
+      3. Di index.html, duplikat <div class="book-album-wrap">
+         lalu ganti data-book="kuliah" dan id="count-kuliah"
+      4. Tambah warna buku di CSS index.html:
+         .book-album[data-book="kuliah"] { --book-bg: ...; --book-spine: ...; }
+
+   ④ UBAH FOTO: ganti nilai src dengan nama file baru
+*/
+
+/* ── Data foto per kategori ── */
 const galleryData = {
 
   /* ── PROYEK ──────────────────────────────────────────────── */
@@ -287,49 +290,28 @@ const galleryData = {
     icon  : '🔧',
     color : '#1d4ed8',
     items : [
-      { src: 'img/port-proyek1.jpeg', title: 'Monitoring Jaringan',   desc: 'Konfigurasi & monitoring di instansi' },
-      { src: 'img/port-proyek2.png',  title: 'Dokumentasi Helpdesk',  desc: 'Sistem tiket & dokumentasi teknis'  },
-      /* ✏️ Tambah proyek baru di bawah ini:
+      { src: 'img/port-proyek1.jpeg', title: 'TUGAS AKHIR',   desc: 'Konfigurasi Mikrotik' },
+      { src: 'img/port-proyek2.png',  title: 'Hasil akhir',  desc: 'Hasil akhir praktik tugas akhir' },
+      { src: 'img/monitoring1.jpeg',  title: 'Monitoring Jaringan',  desc: 'Monitoring Jaringan Saat PKL'  },
+      /* Tambah proyek baru di sini:
       { src: 'img/port-proyek3.jpg', title: 'Nama Proyek', desc: 'Deskripsi singkat' },
       */
     ]
   },
 
-  /* ── PENDIDIKAN: SD ──────────────────────────────────────── */
-  sd: {
-    label : 'SD',
-    icon  : '🏫',
-    color : '#ca8a04',
-    items : [
-      /* ✏️ Tambah foto kenangan SD di sini, contoh:
-      { src: 'img/sd-wisuda.jpg',   title: 'Wisuda SD',       desc: 'Lulus dengan bangga' },
-      { src: 'img/sd-teman.jpg',    title: 'Teman-teman SD',  desc: 'Geng pas kecil' },
-      */
-    ]
-  },
-
-  /* ── PENDIDIKAN: SMP ─────────────────────────────────────── */
-  smp: {
-    label : 'SMP',
-    icon  : '📐',
-    color : '#1d4ed8',
-    items : [
-      /* ✏️ Tambah foto kenangan SMP di sini, contoh:
-      { src: 'img/smp-ekskul.jpg',  title: 'Ekskul Pramuka',  desc: 'Aktif organisasi' },
-      { src: 'img/smp-kelas.jpg',   title: 'Foto Kelas',      desc: 'Kelas 9 terbaik' },
-      */
-    ]
-  },
-
-  /* ── PENDIDIKAN: SMA ─────────────────────────────────────── */
-  sma: {
-    label : 'SMA',
+  /* ── PENDIDIKAN ─────────────────────────────────────────── */
+  pendidikan: {
+    label : 'Pendidikan',
     icon  : '🎓',
-    color : '#b45309',
+    color : '#f59e0b',
     items : [
-      /* ✏️ Tambah foto kenangan SMA di sini, contoh:
-      { src: 'img/sma-prakerin.jpg', title: 'Prakerin',        desc: 'Magang SMK / Praktek industri' },
-      { src: 'img/sma-lulus.jpg',    title: 'Kelulusan',       desc: 'Akhirnya lulus!' },
+      { src: 'img/sd.jpg', title: 'Ngadirejo 1', desc: 'haha lali kabeh' },
+      { src: 'img/smp.jpg', title: '1 Kartasura ', desc: 'a6' },
+      { src: 'img/smk.jpg', title: '2 Surakarta', desc: '🥺🥹🥹' },
+      /* Tambah foto kenangan sekolah di sini:
+      { src: 'img/sd-wisuda.jpg',    title: 'Wisuda SD',    desc: 'Lulus dengan bangga'  },
+      { src: 'img/smp-kelas.jpg',    title: 'Foto Kelas',   desc: 'Kelas 9 terbaik'      },
+      { src: 'img/sma-lulus.jpg',    title: 'Kelulusan',    desc: 'Akhirnya lulus!'       },
       */
     ]
   },
@@ -340,17 +322,17 @@ const galleryData = {
     icon  : '🌟',
     color : '#4338ca',
     items : [
-      { src: 'img/port-hobi1.jpeg', title: 'Fotografi Jalanan',   desc: 'Menangkap momen sehari-hari' },
-      { src: 'img/port-hobi2.jpeg', title: 'Koleksi Stiker',      desc: 'Mengoleksi stiker unik'      },
-      { src: 'img/port-hobi3.jpeg', title: 'Ngopi Sore',          desc: 'Ritual ngopi sambil ngoprek' },
-      { src: 'img/port-hobi4.jpeg', title: 'Meme Buatan Sendiri', desc: 'Kreasi meme sehari-hari'     },
-      /* ✏️ Tambah hobi baru di bawah ini:
-      { src: 'img/hobi-baru.jpg',  title: 'Judul Hobi', desc: 'Deskripsi' },
+      { src: 'img/port-hobi1.jpeg', title: 'Foto Jalan',   desc: '' },
+      { src: 'img/port-hobi2.jpeg', title: 'Hiking lah',      desc: 'Mt.Bismo'      },
+      { src: 'img/port-hobi3.jpeg', title: 'Belajar aesthetic',          desc: 'BI SOLO' },
+      { src: 'img/port-hobi4.jpeg', title: 'Hiking lah', desc: 'Mt.Merbabu'     },
+      /* Tambah hobi baru di sini:
+      { src: 'img/hobi-baru.jpg', title: 'Judul Hobi', desc: 'Deskripsi' },
       */
     ]
   }
 
-  /* ✏️ ── ALBUM BARU — Salin blok ini dan ganti isinya ──
+  /* Salin blok ini untuk album baru:
   ,namaBaru: {
     label : 'Nama Album',
     icon  : '📷',
@@ -369,9 +351,19 @@ Object.keys(galleryData).forEach(key => {
 });
 
 /* ── State ── */
-let currentBook = null;   // key aktif ('proyek' / 'pendidikan' / 'hobi')
-let currentPage = 0;      // indeks halaman (0-based)
-const perPage   = () => window.innerWidth <= 640 ? 1 : 2;  // responsif
+let currentBook = null;
+let currentPage = 0;
+const perPage   = () => window.innerWidth <= 640 ? 1 : 2;
+
+/* ── Helpers ── */
+function activeItems() {
+  if (!currentBook) return [];
+  return galleryData[currentBook].items;
+}
+function activeColor() {
+  if (!currentBook) return '#1d4ed8';
+  return galleryData[currentBook].color;
+}
 
 /* ── Elemen ── */
 const bookShelf         = document.getElementById('book-shelf');
@@ -386,8 +378,9 @@ const galleryBack       = document.getElementById('gallery-back');
 
 /* ── Hitung total halaman ── */
 function totalPages() {
-  if (!currentBook) return 0;
-  return Math.ceil(galleryData[currentBook].items.length / perPage());
+  const items = activeItems();
+  if (!items.length) return 1;
+  return Math.ceil(items.length / perPage());
 }
 
 /* ── Buka album ── */
@@ -400,12 +393,10 @@ function openBook(key) {
   galleryPanelTitle.textContent = data.icon + '  ' + data.label;
   galleryPanelTitle.style.color = data.color;
 
-  /* Sembunyikan rak dengan animasi */
   bookShelf.classList.add('bg-hidden');
 
   setTimeout(() => {
     galleryPanel.style.display = 'block';
-    /* double-rAF agar display:block sudah ter-render sebelum class ditambah */
     requestAnimationFrame(() => requestAnimationFrame(() => {
       galleryPanel.classList.add('panel-active');
     }));
@@ -423,17 +414,18 @@ function closeBook() {
   }, 420);
 }
 
-/* ── Render spread (2 atau 1 foto) ── */
+/* ── Render spread (2 atau 1 foto per halaman) ── */
 function renderSpread(animate) {
   if (!currentBook) return;
 
-  const data     = galleryData[currentBook];
+  const items    = activeItems();
+  const color    = activeColor();
   const pp       = perPage();
   const startIdx = currentPage * pp;
-  const items    = data.items.slice(startIdx, startIdx + pp);
+  const pageItems = items.slice(startIdx, startIdx + pp);
 
   /* Update header count */
-  if (data.items.length === 0) {
+  if (items.length === 0) {
     galleryPanelCount.textContent = 'Belum ada foto';
   } else {
     galleryPanelCount.textContent = 'Hal. ' + (currentPage + 1) + ' / ' + totalPages();
@@ -441,10 +433,10 @@ function renderSpread(animate) {
 
   /* Update nav buttons */
   galleryPrev.disabled = currentPage === 0;
-  galleryNext.disabled = currentPage >= totalPages() - 1 || data.items.length === 0;
+  galleryNext.disabled = currentPage >= totalPages() - 1 || items.length === 0;
 
   /* Empty state */
-  if (data.items.length === 0) {
+  if (items.length === 0) {
     gallerySpread.style.gridTemplateColumns = '1fr';
     gallerySpread.innerHTML = `
       <div style="
@@ -457,19 +449,12 @@ function renderSpread(animate) {
         <div style="font-family:'Syne',sans-serif; font-weight:800; font-size:1rem; color:rgba(255,255,255,.5);">
           Album Masih Kosong
         </div>
-        <div style="font-size:.75rem; color:rgba(255,255,255,.3); max-width:260px; line-height:1.6;">
-          Tambahkan foto di <code style="background:rgba(255,255,255,.08); padding:1px 6px; border-radius:4px;">js/main.js</code>
-          pada bagian <code style="background:rgba(255,255,255,.08); padding:1px 6px; border-radius:4px;">${currentBook}: { items: [ ... ] }</code>
+        <div style="font-size:.75rem; color:rgba(255,255,255,.3); max-width:280px; line-height:1.6;">
+          Tambahkan foto di
+          <code style="background:rgba(255,255,255,.08); padding:1px 6px; border-radius:4px;">js/main.js</code>
+          pada bagian
+          <code style="background:rgba(255,255,255,.08); padding:1px 6px; border-radius:4px;">${currentBook}: { items: [ ... ] }</code>
         </div>
-        <button onclick="document.getElementById('book-placeholder').click(); document.getElementById('gallery-back').click();"
-          style="
-            margin-top:.4rem; padding:.4rem 1.1rem;
-            background:rgba(251,191,36,.15); border:1px solid rgba(251,191,36,.35);
-            color:#fbbf24; border-radius:20px; cursor:pointer; font-size:.72rem;
-            font-family:'DM Mono',monospace;
-          ">
-          📖 Lihat Panduan
-        </button>
       </div>
     `;
     galleryDots.innerHTML = '';
@@ -477,10 +462,9 @@ function renderSpread(animate) {
   }
 
   gallerySpread.style.gridTemplateColumns = pp === 1 ? '1fr' : '1fr 1fr';
-
-  /* Render polaroid cards */
   gallerySpread.innerHTML = '';
-  items.forEach((item, i) => {
+
+  pageItems.forEach((item, i) => {
     const pol = document.createElement('div');
     pol.className  = 'gallery-polaroid';
     pol.role       = 'listitem';
@@ -489,8 +473,8 @@ function renderSpread(animate) {
 
     pol.innerHTML = `
       <img src="${item.src}" alt="${item.title}" loading="lazy">
-      <div class="gal-placeholder" style="display:none; background:linear-gradient(135deg,${data.color}28,${data.color}55);">
-        <span style="font-size:2.6rem;">${data.icon}</span>
+      <div class="gal-placeholder" style="display:none; background:linear-gradient(135deg,${color}28,${color}55);">
+        <span style="font-size:2.6rem;">${galleryData[currentBook].icon}</span>
       </div>
       <div class="gallery-polaroid-info">
         <div class="gal-pol-title">${item.title}</div>
@@ -545,7 +529,7 @@ function renderSpread(animate) {
   for (let i = 0; i < total; i++) {
     const dot = document.createElement('button');
     dot.className        = 'g-dot' + (i === currentPage ? ' g-dot-active' : '');
-    dot.style.background = i === currentPage ? data.color : '';
+    dot.style.background = i === currentPage ? color : '';
     dot.setAttribute('role', 'tab');
     dot.setAttribute('aria-label', 'Halaman ' + (i + 1));
     dot.setAttribute('aria-selected', i === currentPage ? 'true' : 'false');
@@ -554,13 +538,12 @@ function renderSpread(animate) {
   }
 }
 
-/* ── Navigasi halaman (dengan animasi slide) ── */
+/* ── Navigasi halaman ── */
 function goToPage(page) {
   if (!currentBook || page === currentPage) return;
 
   const dir = page > currentPage ? 1 : -1;
 
-  /* Fade + slide out */
   gallerySpread.style.transition = 'opacity .22s ease, transform .22s ease';
   gallerySpread.style.opacity    = '0';
   gallerySpread.style.transform  = `translateX(${dir * 38}px)`;
@@ -568,13 +551,11 @@ function goToPage(page) {
   setTimeout(() => {
     currentPage = page;
 
-    /* Posisi awal dari sisi berlawanan */
     gallerySpread.style.transition = 'none';
     gallerySpread.style.transform  = `translateX(${-dir * 38}px)`;
 
     renderSpread(true);
 
-    /* Fade + slide in */
     requestAnimationFrame(() => requestAnimationFrame(() => {
       gallerySpread.style.transition = 'opacity .34s cubic-bezier(.16,1,.3,1), transform .34s cubic-bezier(.16,1,.3,1)';
       gallerySpread.style.opacity    = '1';
@@ -601,35 +582,9 @@ document.querySelectorAll('.book-album').forEach(book => {
   book.dataset.cursorLabel = '📖 Buka';
 });
 
-/* ── Placeholder "+": toggle panduan update ── */
-const bookPlaceholder = document.getElementById('book-placeholder');
-const updateGuide     = document.getElementById('update-guide');
-const guideClose      = document.getElementById('guide-close');
-
-function showGuide() {
-  if (!updateGuide) return;
-  updateGuide.style.display = 'block';
-  requestAnimationFrame(() => requestAnimationFrame(() => {
-    updateGuide.style.opacity   = '1';
-    updateGuide.style.transform = 'translateY(0)';
-  }));
-}
-function hideGuide() {
-  if (!updateGuide) return;
-  updateGuide.style.opacity   = '0';
-  updateGuide.style.transform = 'translateY(16px)';
-  setTimeout(() => { updateGuide.style.display = 'none'; }, 400);
-}
-
-bookPlaceholder?.addEventListener('click',   showGuide);
-bookPlaceholder?.addEventListener('keydown', e => { if (e.key==='Enter'||e.key===' ') { e.preventDefault(); showGuide(); } });
-guideClose?.addEventListener('click', hideGuide);
-
 /* ── Keyboard navigation ── */
 document.addEventListener('keydown', e => {
   if (!currentBook) return;
-
-  /* Jangan ganggu lightbox */
   if (document.querySelector('.lightbox.active')) return;
 
   if (e.key === 'ArrowRight' && currentPage < totalPages() - 1) {
@@ -641,25 +596,24 @@ document.addEventListener('keydown', e => {
   }
 });
 
-/* ── Touch/swipe support (mobile) ── */
+/* ── Touch/swipe support ── */
 let touchStartX = 0;
 gallerySpread?.addEventListener('touchstart', e => {
   touchStartX = e.touches[0].clientX;
 }, { passive: true });
 gallerySpread?.addEventListener('touchend', e => {
   const diff = touchStartX - e.changedTouches[0].clientX;
-  if (Math.abs(diff) < 48) return; /* threshold minimal 48px */
+  if (Math.abs(diff) < 48) return;
   if (diff > 0 && currentBook && currentPage < totalPages() - 1) goToPage(currentPage + 1);
   else if (diff < 0 && currentPage > 0) goToPage(currentPage - 1);
 }, { passive: true });
 
-/* ── Re-render saat resize (perPage bisa berubah) ── */
+/* ── Re-render saat resize ── */
 let resizeTimer;
 window.addEventListener('resize', () => {
   clearTimeout(resizeTimer);
   resizeTimer = setTimeout(() => {
     if (currentBook) {
-      /* Sesuaikan currentPage agar tidak out-of-range */
       const max = totalPages() - 1;
       if (currentPage > max) currentPage = max;
       renderSpread(false);
@@ -694,7 +648,6 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && lightbox.classList.contains('active')) closeLightbox();
 });
 
-/* Bersihkan modal lama jika ada */
 const oldModal = document.getElementById('modal-bg');
 if (oldModal) oldModal.remove();
 
