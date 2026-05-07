@@ -11,6 +11,366 @@
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="css/style.css">
+
+  <!-- ═══ BOOK GALLERY STYLES ═══ -->
+  <style>
+    /* ── Shelf wrapper ── */
+    .book-shelf {
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      gap: 3rem;
+      padding: 2.5rem 1rem 4rem;
+      perspective: 1400px;
+      min-height: 300px;
+      transition: opacity 0.4s cubic-bezier(.16,1,.3,1),
+                  transform 0.4s cubic-bezier(.16,1,.3,1);
+    }
+    .book-shelf.bg-hidden {
+      opacity: 0;
+      transform: scale(0.95) translateY(14px);
+      pointer-events: none;
+    }
+
+    /* ── Each album book ── */
+    .book-album {
+      position: relative;
+      width: 168px;
+      height: 236px;
+      cursor: pointer;
+      transform-style: preserve-3d;
+      transition: transform 0.42s cubic-bezier(.16,1,.3,1);
+    }
+    .book-album:hover  { transform: translateY(-18px) rotateY(-14deg) rotateX(2deg); }
+    .book-album:active { transform: translateY(-8px) scale(0.97); }
+
+    /* ── Stacked page edges ── */
+    .book-pages-stack {
+      position: absolute;
+      right: -7px; top: 4px; bottom: 4px;
+      width: 18px;
+      z-index: 0;
+    }
+    .bps {
+      position: absolute;
+      top: 0; bottom: 0; right: 0;
+      border-radius: 0 3px 3px 0;
+    }
+    .bps-1 { width: 14px; background: linear-gradient(to right,#e8e4de,#f5f2ee); box-shadow: 3px 2px 6px rgba(0,0,0,.18); }
+    .bps-2 { width: 11px; right: 3px; background: #ede9e2; opacity: .8; }
+    .bps-3 { width:  8px; right: 6px; background: #e5e0d8; opacity: .6; }
+
+    /* ── Cover wrap ── */
+    .book-cover-wrap {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      border-radius: 4px 12px 12px 4px;
+      box-shadow: 5px 8px 24px rgba(0,0,0,.38), 1px 2px 6px rgba(0,0,0,.22);
+      overflow: hidden;
+      z-index: 1;
+    }
+
+    /* ── Spine ── */
+    .book-spine-bar {
+      width: 22px;
+      flex-shrink: 0;
+      background: var(--book-spine);
+      position: relative;
+    }
+    .book-spine-bar::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to right, rgba(0,0,0,.28), transparent);
+    }
+
+    /* ── Cover face ── */
+    .book-face-area {
+      flex: 1;
+      background: var(--book-bg);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem .8rem;
+      gap: .4rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .book-face-area::before {
+      content: '';
+      position: absolute;
+      top: -40%; right: -20%;
+      width: 130%; height: 130%;
+      background: radial-gradient(circle at 65% 25%, rgba(255,255,255,.18), transparent 60%);
+      pointer-events: none;
+    }
+
+    .book-icon       { font-size: 2.2rem; line-height: 1; filter: drop-shadow(0 3px 7px rgba(0,0,0,.28)); }
+    .book-cat-title  { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1rem; color: #fff; letter-spacing: .5px; text-align: center; }
+    .book-item-count {
+      font-size: .62rem; color: rgba(255,255,255,.72);
+      background: rgba(0,0,0,.22); padding: 2px 9px; border-radius: 20px;
+      font-family: 'DM Mono', monospace;
+    }
+    .book-open-hint {
+      font-size: .56rem; color: rgba(255,255,255,.45); margin-top: .25rem;
+      opacity: 0; transform: translateY(5px);
+      transition: opacity .22s, transform .22s;
+    }
+    .book-album:hover .book-open-hint { opacity: 1; transform: translateY(0); }
+
+    /* ── Color themes per album — BIRU & KUNING ── */
+    /* Proyek  → biru tua */
+    .book-album[data-book="proyek"] {
+      --book-bg   : linear-gradient(155deg,#2563eb 0%,#1d4ed8 55%,#1e3a8a 100%);
+      --book-spine: #1e3a8a;
+    }
+    /* SD → kuning cerah */
+    .book-album[data-book="sd"] {
+      --book-bg   : linear-gradient(155deg,#fde047 0%,#facc15 55%,#ca8a04 100%);
+      --book-spine: #a16207;
+    }
+    .book-album[data-book="sd"] .book-cat-title,
+    .book-album[data-book="sd"] .book-open-hint { color: #1e3a8a; }
+    .book-album[data-book="sd"] .book-item-count { background: rgba(0,0,0,.15); color: #1e3a8a; }
+    /* SMP → biru langit */
+    .book-album[data-book="smp"] {
+      --book-bg   : linear-gradient(155deg,#60a5fa 0%,#3b82f6 55%,#1d4ed8 100%);
+      --book-spine: #1d4ed8;
+    }
+    /* SMA → kuning emas */
+    .book-album[data-book="sma"] {
+      --book-bg   : linear-gradient(155deg,#fbbf24 0%,#f59e0b 55%,#b45309 100%);
+      --book-spine: #92400e;
+    }
+    .book-album[data-book="sma"] .book-cat-title,
+    .book-album[data-book="sma"] .book-open-hint { color: #1e3a8a; }
+    .book-album[data-book="sma"] .book-item-count { background: rgba(0,0,0,.15); color: #1e3a8a; }
+    /* Hobi → biru indigo */
+    .book-album[data-book="hobi"] {
+      --book-bg   : linear-gradient(155deg,#818cf8 0%,#4338ca 55%,#312e81 100%);
+      --book-spine: #312e81;
+    }
+    /* Placeholder "+" book */
+    .book-album-placeholder {
+      position: relative;
+      width: 168px;
+      height: 236px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: .5rem;
+      border: 2.5px dashed rgba(255,255,255,.18);
+      border-radius: 4px 12px 12px 4px;
+      cursor: default;
+      transition: border-color .3s, background .3s;
+    }
+    .book-album-placeholder:hover {
+      border-color: #fbbf24;
+      background: rgba(251,191,36,.06);
+    }
+    .book-album-placeholder:hover .ph-icon { transform: scale(1.15) rotate(8deg); }
+    .ph-icon    { font-size: 2rem; transition: transform .3s cubic-bezier(.16,1,.3,1); }
+    .ph-title   { font-family: 'Syne', sans-serif; font-weight: 800; font-size: .85rem; color: rgba(255,255,255,.45); text-align: center; }
+    .ph-tip     { font-size: .58rem; color: rgba(255,255,255,.28); font-family: 'DM Mono', monospace; text-align: center; padding: 0 .6rem; line-height: 1.5; }
+    .ph-badge   {
+      font-size: .6rem; background: rgba(251,191,36,.15); color: #fbbf24;
+      border: 1px solid rgba(251,191,36,.3); padding: 2px 10px; border-radius: 20px;
+      font-family: 'DM Mono', monospace;
+    }
+
+    /* ── Shelf: wrap untuk banyak buku ── */
+    .book-shelf {
+      flex-wrap: wrap;
+      gap: 1.6rem 2.2rem;
+      align-items: flex-end;
+      justify-content: center;
+    }
+
+    /* ── Label under each book ── */
+    .book-label {
+      text-align: center;
+      font-size: .7rem;
+      color: rgba(255,255,255,.45);
+      margin-top: .6rem;
+      font-family: 'DM Mono', monospace;
+      letter-spacing: .5px;
+    }
+
+    /* ══ GALLERY PANEL ══ */
+    .gallery-panel {
+      display: none;
+      opacity: 0;
+      transform: translateX(48px);
+      transition: opacity .5s cubic-bezier(.16,1,.3,1), transform .5s cubic-bezier(.16,1,.3,1);
+    }
+    .gallery-panel.panel-active { opacity: 1; transform: translateX(0); }
+
+    .gallery-panel-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.8rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+
+    .gallery-back-btn {
+      background: rgba(255,255,255,.07);
+      border: 1.5px solid rgba(255,255,255,.13);
+      color: inherit;
+      padding: .42rem 1rem;
+      border-radius: 24px;
+      cursor: pointer;
+      font-size: .8rem;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 500;
+      white-space: nowrap;
+      transition: background .2s, transform .2s, border-color .2s;
+    }
+    .gallery-back-btn:hover {
+      background: rgba(255,255,255,.13);
+      border-color: rgba(255,255,255,.28);
+      transform: translateX(-4px);
+    }
+
+    .gallery-header-center { flex: 1; min-width: 0; }
+    .gallery-panel-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.25rem;
+      display: flex; align-items: center; gap: .5rem;
+    }
+    .gallery-panel-count {
+      font-family: 'DM Mono', monospace;
+      font-size: .72rem;
+      color: rgba(255,255,255,.38);
+      white-space: nowrap;
+    }
+
+    /* ── Stage ── */
+    .gallery-stage {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      min-height: 300px;
+    }
+
+    .gallery-spread {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      padding: 1.2rem .4rem 1.5rem;
+      transition: opacity .26s ease, transform .34s cubic-bezier(.16,1,.3,1);
+    }
+
+    /* ── Polaroid photo card ── */
+    .gallery-polaroid {
+      background: #faf8f2;
+      padding: 10px 10px 44px;
+      border-radius: 3px;
+      box-shadow: 0 8px 28px rgba(0,0,0,.22), 0 2px 6px rgba(0,0,0,.12);
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      user-select: none;
+      transition: box-shadow .3s, z-index 0s;
+    }
+    .gallery-polaroid:nth-child(odd)  { transform: rotate(-2deg); }
+    .gallery-polaroid:nth-child(even) { transform: rotate(1.5deg) translateY(10px); }
+    .gallery-polaroid:hover {
+      box-shadow: 0 24px 52px rgba(0,0,0,.3), 0 4px 14px rgba(0,0,0,.18);
+      z-index: 10;
+    }
+    .gallery-polaroid img {
+      width: 100%; aspect-ratio: 4/3;
+      object-fit: cover; display: block;
+      background: #d9d5ef; border-radius: 2px;
+    }
+    .gal-placeholder {
+      width: 100%; aspect-ratio: 4/3;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2.8rem; border-radius: 2px;
+    }
+    .gallery-polaroid-info {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      padding: 5px 10px 9px; text-align: center;
+    }
+    .gal-pol-title {
+      font-family: 'DM Mono', monospace;
+      font-size: .66rem; color: #333; font-weight: 500;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .gal-pol-desc {
+      font-size: .58rem; color: #999; margin-top: 1px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    /* ── Nav arrows ── */
+    .gallery-nav-btn {
+      background: rgba(255,255,255,.07);
+      border: 1.5px solid rgba(255,255,255,.12);
+      color: inherit;
+      width: 42px; height: 42px;
+      border-radius: 50%;
+      font-size: 1.5rem;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      line-height: 1; padding-bottom: 1px;
+      transition: background .2s, border-color .2s, transform .2s, opacity .2s;
+    }
+    .gallery-nav-btn:hover:not(:disabled) {
+      background: #3b35d4; border-color: #3b35d4; transform: scale(1.12);
+    }
+    .gallery-nav-btn:disabled { opacity: .22; cursor: not-allowed; }
+
+    /* ── Dot indicators ── */
+    .gallery-dots-row {
+      display: flex; justify-content: center;
+      gap: 6px; margin-top: 1.4rem;
+    }
+    .g-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      border: none; cursor: pointer; padding: 0;
+      background: rgba(255,255,255,.2);
+      transition: width .25s cubic-bezier(.16,1,.3,1),
+                  background .25s, border-radius .25s;
+    }
+    .g-dot.g-dot-active { width: 24px; border-radius: 4px; }
+
+    /* ── Keyboard hint ── */
+    .gallery-kb-hint {
+      text-align: center; margin-top: 1rem;
+      font-family: 'DM Mono', monospace;
+      font-size: .6rem; color: rgba(255,255,255,.28);
+      display: flex; align-items: center; justify-content: center; gap: .4rem;
+    }
+    .gallery-kb-hint kbd {
+      background: rgba(255,255,255,.1);
+      border: 1px solid rgba(255,255,255,.15);
+      border-radius: 4px; padding: 1px 6px;
+      font-family: inherit; font-size: .6rem;
+    }
+
+    /* ── Responsive tweaks ── */
+    @media (max-width: 640px) {
+      .book-shelf      { gap: 1.4rem; padding-top: 1.5rem; }
+      .book-album      { width: 130px; height: 188px; }
+      .book-icon       { font-size: 1.8rem; }
+      .book-cat-title  { font-size: .85rem; }
+      .gallery-spread  { grid-template-columns: 1fr; gap: 1.5rem; }
+      .gallery-panel-title { font-size: 1.05rem; }
+      .gallery-kb-hint { display: none; }
+    }
+    @media (max-width: 380px) {
+      .book-album { width: 108px; height: 158px; }
+    }
+  </style>
 </head>
 <body>
 
@@ -71,59 +431,38 @@
 
     <div class="hero-card reveal-scale delay-2">
       <div class="hero-card-inner">
-  <!-- FOTO KAMU -->
-  <div class="hero-photo-area">
-    <img src="img/farel.jpeg" alt="Foto Farel" style="object-fit: cover; width: 100%; height: 100%;">
-  </div>
-
-  <!-- STATUS -->
-  <div class="hero-status" style="justify-content: center; margin-top: 0.6rem;">
-    <span class="status-dot"></span> Available
-  </div>
-
-  <!-- STATS -->
-  <div class="hero-stats">
-    <div class="stat">
-      <span class="stat-num">0+</span>
-      <span class="stat-label">Proyek Kecil</span>
-    </div>
-    <div class="stat">
-      <span class="stat-num">1</span>
-      <span class="stat-label">Magang</span>
-    </div>
-    <div class="stat">
-      <span class="stat-num">∞</span>
-      <span class="stat-label">Rasa Ingin Tahu</span>
+        <div class="hero-photo-area">
+          <img src="img/farel.jpeg" alt="Foto Farel" style="object-fit: cover; width: 100%; height: 100%;">
+        </div>
+        <div class="hero-status" style="justify-content: center; margin-top: 0.6rem;">
+          <span class="status-dot"></span> Available
+        </div>
+        <div class="hero-stats">
+          <div class="stat"><span class="stat-num">0+</span><span class="stat-label">Proyek Kecil</span></div>
+          <div class="stat"><span class="stat-num">1</span><span class="stat-label">Magang</span></div>
+          <div class="stat"><span class="stat-num">∞</span><span class="stat-label">Rasa Ingin Tahu</span></div>
+        </div>
+      </div>
     </div>
   </div>
-</div>
 </section>
 
 <div class="section-divider"></div>
 
-<!-- About, Skills, Portfolio, Contact sama seperti sebelumnya -->
 <section id="about">
   <div class="about-grid container">
-    <!-- Kolom kiri: Foto + corner card -->
     <div class="about-visual reveal-left">
       <div class="about-photo-frame">
-        <!-- Foto utama pakai farel.jpg, fallback ikon komputer -->
         <div class="about-photo-main">
           <img src="img/profil2.jpg" alt="Foto Farel"
                style="width: 100%; height: 100%; object-fit: cover; display: block;"
                onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=\'display:flex;align-items:center;justify-content:center;height:100%;background:#3b35d4;\'><span style=\'font-size:4rem;filter:drop-shadow(0 8px 8px rgba(0,0,0,0.3));\'>🖥️</span></div>';">
         </div>
-
-        <div class="about-corner-card top-right">
-        
-        </div>
-        <div class="about-corner-card bot-left">
-          
-        </div>
+        <div class="about-corner-card top-right"></div>
+        <div class="about-corner-card bot-left"></div>
       </div>
     </div>
 
-    <!-- Kolom kanan: Teks -->
     <div class="about-text">
       <div class="section-chip reveal">Tentang Saya</div>
       <h2 class="section-title reveal">Halo! Saya <span class="grad-text">Farel</span></h2>
@@ -152,7 +491,6 @@
       <h2 class="section-title reveal">Petualangan <span class="grad-text">Belajar</span></h2>
       <p class="reveal delay-1">Tidak perlu sempurna, yang penting terus bergerak. Ini beberapa hal yang sedang aku eksplorasi.</p>
     </div>
-
     <div class="skills-bento reveal">
       <div class="skill-card wide"><span class="skill-emoji">🌐</span><div class="skill-card-name">Jaringan &amp; MikroTik</div><div class="skill-card-sub">Konfigurasi dasar, monitoring, troubleshooting</div></div>
       <div class="skill-card"><span class="skill-emoji">💻</span><div class="skill-card-name">HTML &amp; CSS</div><div class="skill-card-sub">Membangun tampilan website sederhana</div></div>
@@ -166,85 +504,239 @@
 
 <div class="section-divider"></div>
 
+<!-- ═══════════════════════════════════
+     PORTFOLIO — BOOK GALLERY
+     ═══════════════════════════════════ -->
 <section id="portfolio">
   <div class="portfolio-container">
+
+    <!-- Header -->
     <div class="portfolio-top">
       <div>
         <div class="section-chip reveal">Karya &amp; Hobi</div>
         <h2 class="section-title reveal">Portfolio <span class="grad-text">Mini</span></h2>
-      </div>
-      <div class="filter-group reveal">
-        <button class="filter-pill active" data-filter="all">Semua</button>
-        <button class="filter-pill" data-filter="hobi">Hobi</button>
-        <button class="filter-pill" data-filter="proyek">Proyek</button>
+        <p class="reveal delay-1" style="color:rgba(255,255,255,.5); font-size:.88rem; margin-top:.4rem;">
+          Pilih album di bawah untuk menjelajahi foto-fotonya 📖
+        </p>
       </div>
     </div>
 
-    <div class="masonry-grid reveal" id="masonry-grid">
+    <!-- ── Rak Album (tampilan awal) ── -->
+    <div class="book-shelf reveal" id="book-shelf">
 
-  <!-- Hobi 1 -->
-  <div class="masonry-item" data-cat="hobi" data-full="img/port-hobi1.jpeg">
-    <img src="img/port-hobi1.jpeg" alt="Fotografi" loading="lazy"
-         onerror="this.parentElement.classList.add('placeholder-mode');">
-    <div class="masonry-overlay">
-      <div class="masonry-item-title">Fotografi Jalanan</div>
-      <div class="masonry-item-cat">Hobi</div>
+      <!-- Album: Proyek -->
+      <div class="book-album-wrap">
+        <div class="book-album" data-book="proyek" role="button" tabindex="0"
+             aria-label="Buka album Proyek" title="Buka Album Proyek">
+          <div class="book-pages-stack">
+            <div class="bps bps-3"></div>
+            <div class="bps bps-2"></div>
+            <div class="bps bps-1"></div>
+          </div>
+          <div class="book-cover-wrap">
+            <div class="book-spine-bar"></div>
+            <div class="book-face-area">
+              <span class="book-icon">🔧</span>
+              <div class="book-cat-title">Proyek</div>
+              <div class="book-item-count" id="count-proyek">2 foto</div>
+              <div class="book-open-hint">Buka album →</div>
+            </div>
+          </div>
+        </div>
+        <div class="book-label">Proyek</div>
+      </div>
+
+      <!-- Album: SD -->
+      <div class="book-album-wrap">
+        <div class="book-album" data-book="sd" role="button" tabindex="0"
+             aria-label="Buka album SD" title="Buka Album SD">
+          <div class="book-pages-stack">
+            <div class="bps bps-3"></div><div class="bps bps-2"></div><div class="bps bps-1"></div>
+          </div>
+          <div class="book-cover-wrap">
+            <div class="book-spine-bar"></div>
+            <div class="book-face-area">
+              <span class="book-icon">🏫</span>
+              <div class="book-cat-title">SD</div>
+              <div class="book-item-count" id="count-sd">0 foto</div>
+              <div class="book-open-hint">Buka album →</div>
+            </div>
+          </div>
+        </div>
+        <div class="book-label">SD</div>
+      </div>
+
+      <!-- Album: SMP -->
+      <div class="book-album-wrap">
+        <div class="book-album" data-book="smp" role="button" tabindex="0"
+             aria-label="Buka album SMP" title="Buka Album SMP">
+          <div class="book-pages-stack">
+            <div class="bps bps-3"></div><div class="bps bps-2"></div><div class="bps bps-1"></div>
+          </div>
+          <div class="book-cover-wrap">
+            <div class="book-spine-bar"></div>
+            <div class="book-face-area">
+              <span class="book-icon">📐</span>
+              <div class="book-cat-title">SMP</div>
+              <div class="book-item-count" id="count-smp">0 foto</div>
+              <div class="book-open-hint">Buka album →</div>
+            </div>
+          </div>
+        </div>
+        <div class="book-label">SMP</div>
+      </div>
+
+      <!-- Album: SMA -->
+      <div class="book-album-wrap">
+        <div class="book-album" data-book="sma" role="button" tabindex="0"
+             aria-label="Buka album SMA" title="Buka Album SMA">
+          <div class="book-pages-stack">
+            <div class="bps bps-3"></div><div class="bps bps-2"></div><div class="bps bps-1"></div>
+          </div>
+          <div class="book-cover-wrap">
+            <div class="book-spine-bar"></div>
+            <div class="book-face-area">
+              <span class="book-icon">🎓</span>
+              <div class="book-cat-title">SMA</div>
+              <div class="book-item-count" id="count-sma">0 foto</div>
+              <div class="book-open-hint">Buka album →</div>
+            </div>
+          </div>
+        </div>
+        <div class="book-label">SMA</div>
+      </div>
+
+      <!-- Album: Hobi -->
+      <div class="book-album-wrap">
+        <div class="book-album" data-book="hobi" role="button" tabindex="0"
+             aria-label="Buka album Hobi" title="Buka Album Hobi">
+          <div class="book-pages-stack">
+            <div class="bps bps-3"></div>
+            <div class="bps bps-2"></div>
+            <div class="bps bps-1"></div>
+          </div>
+          <div class="book-cover-wrap">
+            <div class="book-spine-bar"></div>
+            <div class="book-face-area">
+              <span class="book-icon">🌟</span>
+              <div class="book-cat-title">Hobi</div>
+              <div class="book-item-count" id="count-hobi">4 foto</div>
+              <div class="book-open-hint">Buka album →</div>
+            </div>
+          </div>
+        </div>
+        <div class="book-label">Hobi</div>
+      </div>
+
+      <!-- ✦ PLACEHOLDER — Tambah Album Baru ✦
+           Klik/hover untuk lihat panduan cara menambah foto & album baru. -->
+      <div class="book-album-wrap" id="placeholder-wrap">
+        <div class="book-album-placeholder" id="book-placeholder"
+             role="button" tabindex="0" title="Cara menambah album baru"
+             aria-label="Panduan tambah album">
+          <span class="ph-icon">➕</span>
+          <div class="ph-title">Album Baru</div>
+          <div class="ph-badge">Segera Hadir</div>
+          <div class="ph-tip">Klik untuk panduan<br>cara update foto</div>
+        </div>
+        <div class="book-label">Tambah</div>
+      </div>
+
+    </div><!-- /.book-shelf -->
+
+    <!-- ✦ PANDUAN UPDATE — muncul saat klik placeholder -->
+    <div id="update-guide" style="
+      display:none; opacity:0; transform:translateY(16px);
+      transition: opacity .4s cubic-bezier(.16,1,.3,1), transform .4s cubic-bezier(.16,1,.3,1);
+      background:#fff; color:#1e3a8a;
+      border: 2px solid #fbbf24; border-radius: 16px;
+      padding: 1.6rem 1.8rem; margin: 0 0 2rem;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      box-shadow: 0 8px 32px rgba(30,58,138,.12);
+    ">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+        <div style="font-family:'Syne',sans-serif; font-weight:800; font-size:1.05rem; color:#1d4ed8;">
+          📖 Cara Menambah Foto &amp; Album Baru
+        </div>
+        <button id="guide-close" style="
+          background:none; border:none; font-size:1.4rem; cursor:pointer;
+          color:#94a3b8; line-height:1; padding:0 4px;
+        " aria-label="Tutup panduan">×</button>
+      </div>
+
+      <div style="display:grid; gap:.9rem; font-size:.82rem; line-height:1.6; color:#334155;">
+
+        <div style="background:#eff6ff; border-left:3px solid #3b82f6; border-radius:0 8px 8px 0; padding:.7rem 1rem;">
+          <strong style="color:#1d4ed8;">① Tambah foto ke album yang sudah ada</strong><br>
+          Buka <code style="background:#dbeafe; padding:1px 5px; border-radius:4px; font-size:.78rem;">js/main.js</code>
+          → cari bagian <code style="background:#dbeafe; padding:1px 5px; border-radius:4px; font-size:.78rem;">const galleryData = {</code>
+          → tambahkan item baru di dalam array <code style="background:#dbeafe; padding:1px 5px; border-radius:4px; font-size:.78rem;">items: [...]</code>
+          milik album yang kamu mau.<br>
+          <span style="color:#64748b; font-size:.75rem;">Contoh menambah foto di album Hobi:</span><br>
+          <code style="display:block; background:#1e3a8a; color:#fbbf24; padding:.5rem .7rem; border-radius:6px; margin-top:.3rem; font-size:.72rem; white-space:pre-wrap;">{ src: 'img/namafile.jpg', title: 'Judul Foto', desc: 'Deskripsi singkat' },</code>
+          Lalu taruh file fotonya di folder <code style="background:#dbeafe; padding:1px 5px; border-radius:4px; font-size:.78rem;">img/</code>
+        </div>
+
+        <div style="background:#fefce8; border-left:3px solid #fbbf24; border-radius:0 8px 8px 0; padding:.7rem 1rem;">
+          <strong style="color:#92400e;">② Tambah album baru (mis. "Kuliah")</strong><br>
+          Di <code style="background:#fef9c3; padding:1px 5px; border-radius:4px; font-size:.78rem;">js/main.js</code>
+          dalam <code style="background:#fef9c3; padding:1px 5px; border-radius:4px; font-size:.78rem;">galleryData</code>, tambahkan blok baru:<br>
+          <code style="display:block; background:#1e3a8a; color:#fde047; padding:.5rem .7rem; border-radius:6px; margin-top:.3rem; font-size:.72rem; white-space:pre-wrap;">kuliah: {
+  label : 'Kuliah',
+  icon  : '🎓',
+  color : '#2563eb',
+  items : [
+    { src: 'img/kuliah1.jpg', title: 'Ospek', desc: 'Hari pertama masuk' },
+  ]
+},</code>
+          Lalu di <code style="background:#fef9c3; padding:1px 5px; border-radius:4px; font-size:.78rem;">index.html</code>,
+          duplikat salah satu blok <code style="background:#fef9c3; padding:1px 5px; border-radius:4px; font-size:.78rem;">&lt;div class="book-album-wrap"&gt;</code>
+          dan ganti <code style="background:#fef9c3; padding:1px 5px; border-radius:4px; font-size:.78rem;">data-book="kuliah"</code> dan isi teksnya.
+        </div>
+
+        <div style="background:#f0fdf4; border-left:3px solid #4ade80; border-radius:0 8px 8px 0; padding:.7rem 1rem;">
+          <strong style="color:#166534;">③ Warna sampul buku baru</strong><br>
+          Di bagian CSS dalam <code style="background:#dcfce7; padding:1px 5px; border-radius:4px; font-size:.78rem;">&lt;style&gt;</code> di <code style="background:#dcfce7; padding:1px 5px; border-radius:4px; font-size:.78rem;">index.html</code>,
+          tambahkan tema warna baru:<br>
+          <code style="display:block; background:#1e3a8a; color:#86efac; padding:.5rem .7rem; border-radius:6px; margin-top:.3rem; font-size:.72rem; white-space:pre-wrap;">.book-album[data-book="kuliah"] {
+  --book-bg   : linear-gradient(155deg,#60a5fa 0%,#2563eb 100%);
+  --book-spine: #1e3a8a;
+}</code>
+        </div>
+
+      </div>
     </div>
+
+    <!-- ── Gallery Panel (tampilan setelah album dibuka) ── -->
+    <div class="gallery-panel" id="gallery-panel" aria-live="polite">
+
+      <div class="gallery-panel-header">
+        <button class="gallery-back-btn" id="gallery-back" aria-label="Kembali ke rak album">
+          ← Kembali
+        </button>
+        <div class="gallery-header-center">
+          <div class="gallery-panel-title" id="gallery-panel-title">Album</div>
+        </div>
+        <span class="gallery-panel-count" id="gallery-panel-count">Hal. 1 / 1</span>
+      </div>
+
+      <div class="gallery-stage" id="gallery-stage">
+        <button class="gallery-nav-btn" id="gallery-prev" aria-label="Halaman sebelumnya" disabled>‹</button>
+        <div class="gallery-spread" id="gallery-spread" role="list">
+          <!-- Polaroid cards dirender oleh JS -->
+        </div>
+        <button class="gallery-nav-btn" id="gallery-next" aria-label="Halaman berikutnya">›</button>
+      </div>
+
+      <div class="gallery-dots-row" id="gallery-dots" role="tablist" aria-label="Navigasi halaman"></div>
+
+      <div class="gallery-kb-hint">
+        <kbd>←</kbd> <kbd>→</kbd> ganti halaman &nbsp;·&nbsp; <kbd>Esc</kbd> tutup album &nbsp;·&nbsp; klik foto untuk perbesar
+      </div>
+
+    </div><!-- /.gallery-panel -->
+
   </div>
-
-  <!-- Proyek 1 -->
-  <div class="masonry-item" data-cat="proyek" data-full="img/port-proyek1.jpeg">
-    <img src="img/port-proyek1.jpeg" alt="Monitoring" loading="lazy"
-         onerror="this.parentElement.classList.add('placeholder-mode');">
-    <div class="masonry-overlay">
-      <div class="masonry-item-title">Monitoring Jaringan</div>
-      <div class="masonry-item-cat">Proyek</div>
-    </div>
-  </div>
-
-  <!-- Hobi 2 -->
-  <div class="masonry-item" data-cat="hobi" data-full="img/port-hobi2.jpeg">
-    <img src="img/port-hobi2.jpeg" alt="Stiker" loading="lazy"
-         onerror="this.parentElement.classList.add('placeholder-mode');">
-    <div class="masonry-overlay">
-      <div class="masonry-item-title">Koleksi Stiker</div>
-      <div class="masonry-item-cat">Hobi</div>
-    </div>
-  </div>
-
-  <!-- Proyek 2 -->
-  <div class="masonry-item" data-cat="proyek" data-full="img/port-proyek2.png">
-    <img src="img/port-proyek2.png" alt="Dokumentasi" loading="lazy"
-         onerror="this.parentElement.classList.add('placeholder-mode');">
-    <div class="masonry-overlay">
-      <div class="masonry-item-title">Dokumentasi Helpdesk</div>
-      <div class="masonry-item-cat">Proyek</div>
-    </div>
-  </div>
-
-  <!-- Hobi 3 -->
-  <div class="masonry-item tall" data-cat="hobi" data-full="img/port-hobi3.jpeg">
-    <img src="img/port-hobi3.jpeg" alt="Ngopi" loading="lazy"
-         onerror="this.parentElement.classList.add('placeholder-mode');">
-    <div class="masonry-overlay">
-      <div class="masonry-item-title">Ngopi Sore</div>
-      <div class="masonry-item-cat">Hobi</div>
-    </div>
-  </div>
-
-  <!-- Hobi 4 -->
-  <div class="masonry-item" data-cat="hobi" data-full="img/port-hobi4.jpeg">
-    <img src="img/port-hobi4.jpeg" alt="Meme" loading="lazy"
-         onerror="this.parentElement.classList.add('placeholder-mode');">
-    <div class="masonry-overlay">
-      <div class="masonry-item-title">Meme Buatan Sendiri</div>
-      <div class="masonry-item-cat">Hobi</div>
-    </div>
-  </div>
-
-</div>
-
-</div>
 </section>
 
 <div class="section-divider"></div>
@@ -284,11 +776,6 @@
     <a class="social-btn" href="https://www.facebook.com/valdio.adinaya" target="_blank">FB</a>
   </div>
 </footer>
-
-<div class="modal-bg" id="modal-bg">
-  <button class="modal-close-btn" id="modal-close">×</button>
-  <div class="modal-content"><img id="modal-img" src="" alt="Preview"></div>
-</div>
 
 <div class="toast" id="toast">
   <div class="toast-icon">✓</div>
