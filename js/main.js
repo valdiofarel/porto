@@ -5,6 +5,9 @@
    Book Gallery Edition (Pendidikan Tabs)
    ══════════════════════════════════════ */
 
+/* ─── Sembunyikan typewriter sedini mungkin ─── */
+document.head.insertAdjacentHTML('beforeend', '<style id="hide-typewriter">#typewriter{visibility:hidden!important}</style>');
+
 /* ─── SCROLL PROGRESS BAR ─── */
 const scrollBar = document.getElementById('scroll-progress') || document.createElement('div');
 if (!scrollBar.id) { scrollBar.id = 'scroll-progress'; document.body.prepend(scrollBar); }
@@ -74,58 +77,12 @@ function updateDots() {
 window.addEventListener('scroll', updateDots, { passive: true });
 updateDots();
 
-/* ═══ CURSOR SYSTEM ═══ */
-const cursor      = document.getElementById('cursor');
-const cursorDot   = document.getElementById('cursor-dot');
-const cursorTrail = document.getElementById('cursor-trail');
-const cursorLabel = document.getElementById('cursor-label') || (() => {
-  const el = document.createElement('div'); el.id = 'cursor-label'; document.body.appendChild(el); return el;
-})();
+/* ═══ CURSOR — menggunakan CSS cursor dari file Future Cursor ═══ */
+// Cursor dihandle via CSS dengan file .cur dari Future Cursor pack
+// cur element tidak lagi digunakan
 
-let mx = 0, my = 0, trailX = 0, trailY = 0;
-let cursorVisible = false;
-
-function setCursorVisibility(visible) {
-  cursorVisible = visible;
-  [cursor, cursorDot, cursorTrail, cursorLabel].forEach(el => {
-    if (el) el.style.visibility = visible ? 'visible' : 'hidden';
-  });
-}
-setCursorVisibility(false);
-
-document.addEventListener('mousemove', e => {
-  mx = e.clientX; my = e.clientY;
-  if (cursor)      { cursor.style.left      = mx + 'px'; cursor.style.top      = my + 'px'; }
-  if (cursorDot)   { cursorDot.style.left   = mx + 'px'; cursorDot.style.top   = my + 'px'; }
-  if (cursorLabel) { cursorLabel.style.left = mx + 'px'; cursorLabel.style.top = my + 'px'; }
-  if (!cursorVisible) setCursorVisibility(true);
-});
-document.addEventListener('mouseleave', () => setCursorVisibility(false));
-document.addEventListener('mouseenter', () => setCursorVisibility(true));
-
-(function animTrail() {
-  trailX += (mx - trailX) * 0.12;
-  trailY += (my - trailY) * 0.12;
-  if (cursorTrail) { cursorTrail.style.left = trailX + 'px'; cursorTrail.style.top = trailY + 'px'; }
-  requestAnimationFrame(animTrail);
-})();
-
-document.querySelectorAll('a, button, .btn, .book-album, .skill-card, .contact-chip, .s-dot, .social-btn, .gallery-polaroid').forEach(el => {
-  el.addEventListener('mouseenter', () => {
-    document.body.classList.add('hovering');
-    const label = el.dataset.cursorLabel || '';
-    if (cursorLabel) cursorLabel.textContent = label;
-  });
-  el.addEventListener('mouseleave', () => {
-    document.body.classList.remove('hovering');
-    if (cursorLabel) cursorLabel.textContent = '';
-  });
-});
-
-document.addEventListener('mousedown', () => document.body.classList.add('clicking'));
-document.addEventListener('mouseup',   () => document.body.classList.remove('clicking'));
-document.addEventListener('click', spawnSparkles);
-function spawnSparkles(e) {
+/* ─── SPARKLE ON CLICK ─── */
+document.addEventListener('click', function spawnSparkles(e) {
   const colors = ['#ffe033','#3b35d4','#ff5c5c','#00c896','#ff7a2f','#7c3aed'];
   for (let i = 0; i < 9; i++) {
     const sp = document.createElement('div');
@@ -140,20 +97,9 @@ function spawnSparkles(e) {
     document.body.appendChild(sp);
     setTimeout(() => sp.remove(), 950);
   }
-}
+});
 
-let lastTrailTime = 0;
-document.addEventListener('mousemove', e => {
-  const now = Date.now();
-  if (now - lastTrailTime < 90) return;
-  lastTrailTime = now;
-  const dot = document.createElement('div');
-  dot.style.cssText = `position:fixed;pointer-events:none;z-index:9996;width:4px;height:4px;border-radius:50%;background:rgba(59,53,212,0.25);left:${e.clientX}px;top:${e.clientY}px;transform:translate(-50%,-50%);transition:opacity 0.5s;`;
-  document.body.appendChild(dot);
-  requestAnimationFrame(() => { dot.style.opacity = '0'; });
-  setTimeout(() => dot.remove(), 600);
-}, { passive: true });
-
+/* ─── BTN MAGNETIC HOVER ─── */
 document.querySelectorAll('.btn-grad').forEach(btn => {
   btn.addEventListener('mousemove', e => {
     const r = btn.getBoundingClientRect();
@@ -162,6 +108,7 @@ document.querySelectorAll('.btn-grad').forEach(btn => {
   btn.addEventListener('mouseleave', () => { btn.style.transform = ''; });
 });
 
+/* ─── BTN PARTICLE HOVER ─── */
 document.querySelectorAll('.btn').forEach(btn => {
   btn.addEventListener('mouseenter', function() {
     for (let i = 0; i < 5; i++) {
@@ -179,17 +126,145 @@ document.querySelectorAll('.btn').forEach(btn => {
 
 /* ─── TYPEWRITER ─── */
 const typeEl = document.getElementById('typewriter');
-const texts  = ['Kata kata hari ini','Hwaiting!','اِنَّ مَعَ الْعُسْرِ يُسْرًاۗ','Acta non verba','Pluk de dag'];
-let ti=0, ci=0, deleting=false;
+if (typeEl) {
+  typeEl.textContent = ''; // bersihkan teks bawaan HTML
+  // Hapus aturan CSS yang menyembunyikan segera setelah kita pegang elemen
+  const hideStyle = document.getElementById('hide-typewriter');
+  if (hideStyle) hideStyle.remove();
+  // Sembunyikan dulu lewat inline style
+  typeEl.style.visibility = 'hidden';
+}
+
+function getTimeGreetings() {
+  const hour = new Date().getHours();
+  let period;
+  if (hour >= 5 && hour < 11) {
+    period = 'morning';
+  } else if (hour >= 11 && hour < 15) {
+    period = 'afternoon';
+  } else if (hour >= 15 && hour < 19) {
+    period = 'evening';
+  } else {
+    period = 'night';
+  }
+
+  const langGreetings = [
+    {
+      country: 'Indonesia', flag: '🇮🇩',
+      morning: 'Selamat pagi', afternoon: 'Selamat siang',
+      evening: 'Selamat sore', night: 'Selamat malam'
+    },
+    {
+      country: 'Amerika Serikat', flag: '🇺🇸',
+      morning: 'Good morning', afternoon: 'Good afternoon',
+      evening: 'Good evening', night: 'Good night'
+    },
+    {
+      country: 'Israel', flag: '🇮🇱',
+      morning: 'בוקר טוב', afternoon: 'צהריים טובים',
+      evening: 'ערב טוב', night: 'לילה טוב'
+    },
+    {
+      country: 'Taiwan', flag: '🇹🇼',
+      morning: '早上好', afternoon: '下午好',
+      evening: '晚上好', night: '晚安'
+    },
+    {
+      country: 'China', flag: '🇨🇳',
+      morning: '早上好', afternoon: '下午好',
+      evening: '晚上好', night: '晚安'
+    },
+    {
+      country: 'India', flag: '🇮🇳',
+      morning: 'सुप्रभात', afternoon: 'नमस्कार',
+      evening: 'शुभ संध्या', night: 'शुभ रात्रि'
+    },
+    {
+      country: 'Korea Selatan', flag: '🇰🇷',
+      morning: '좋은 아침', afternoon: '안녕하세요',
+      evening: '안녕하세요', night: '안녕히 주무세요'
+    },
+    {
+      country: 'Singapura', flag: '🇸🇬',
+      morning: 'Good morning', afternoon: 'Good afternoon',
+      evening: 'Good evening', night: 'Good night'
+    },
+    {
+      country: 'Prancis', flag: '🇫🇷',
+      morning: 'Bonjour', afternoon: 'Bon après-midi',
+      evening: 'Bonsoir', night: 'Bonne nuit'
+    },
+    {
+      country: 'Jepang', flag: '🇯🇵',
+      morning: 'おはよう', afternoon: 'こんにちは',
+      evening: 'こんばんは', night: 'おやすみ'
+    },
+    {
+      country: 'Hong Kong', flag: '🇭🇰',
+      morning: '早晨', afternoon: '午安',
+      evening: '晚上好', night: '晚安'
+    },
+    {
+      country: 'Jerman', flag: '🇩🇪',
+      morning: 'Guten Morgen', afternoon: 'Guten Tag',
+      evening: 'Guten Abend', night: 'Gute Nacht'
+    },
+    {
+      country: 'Finlandia', flag: '🇫🇮',
+      morning: 'Hyvää huomenta', afternoon: 'Hyvää päivää',
+      evening: 'Hyvää iltaa', night: 'Hyvää yötä'
+    },
+    {
+      country: 'Swedia', flag: '🇸🇪',
+      morning: 'God morgon', afternoon: 'God dag',
+      evening: 'God kväll', night: 'God natt'
+    },
+    {
+      country: 'Estonia', flag: '🇪🇪',
+      morning: 'Tere hommikust', afternoon: 'Tere päevast',
+      evening: 'Tere õhtust', night: 'Head ööd'
+    },
+    {
+      country: 'Swiss', flag: '🇨🇭',
+      morning: 'Buongiorno', afternoon: 'Buon pomeriggio',
+      evening: 'Buonasera', night: 'Buonanotte'
+    }
+  ];
+
+  return langGreetings.map(g => g[period]);
+}
+
+let ti = 0, ci = 0, deleting = false;
+let texts = getTimeGreetings();
+let typewriterVisible = false;
+
 function typeLoop() {
   if (!typeEl) return;
+
   const full = texts[ti];
-  typeEl.textContent = deleting ? full.slice(0,ci--) : full.slice(0,ci++);
+  typeEl.textContent = deleting ? full.slice(0, ci--) : full.slice(0, ci++);
+
+  // Tampilkan elemen tepat setelah karakter pertama muncul
+  if (!typewriterVisible && !deleting && ci > 0) {
+    typeEl.style.visibility = 'visible';
+    typewriterVisible = true;
+  }
+
   let speed = deleting ? 40 : 85;
-  if (!deleting && ci > full.length) { speed = 1600; deleting = true; }
-  if (deleting && ci < 0) { deleting = false; ti = (ti+1)%texts.length; speed = 350; }
+  if (!deleting && ci > full.length) {
+    speed = 1600;
+    deleting = true;
+  }
+  if (deleting && ci < 0) {
+    deleting = false;
+    ti = (ti + 1) % texts.length;
+    if (ti === 0) texts = getTimeGreetings();
+    speed = 350;
+  }
+
   setTimeout(typeLoop, speed);
 }
+
 typeLoop();
 
 /* ─── SCROLL REVEAL ─── */
@@ -254,52 +329,21 @@ new IntersectionObserver(entries => {
 
 /* ═══════════════════════════════════════════════════
    BOOK GALLERY — Portfolio Section
-   ═══════════════════════════════════════════════════
-
-   PANDUAN UPDATE FOTO (simpan panduan ini untuk kamu sendiri):
-
-   ① TAMBAH FOTO ke album yang ada:
-      Cari albumnya di bawah (mis. hobi: { ... })
-      Tambahkan baris baru di dalam items: [ ... ]:
-      { src: 'img/namafile.jpg', title: '...', desc: '...' },
-      Taruh file foto di folder img/
-
-   ② UNTUK PENDIDIKAN (SD/SMP/SMA):
-      Masing-masing punya items sendiri di dalam:
-        pendidikan.tabs.sd.items  → foto SD
-        pendidikan.tabs.smp.items → foto SMP
-        pendidikan.tabs.sma.items → foto SMA
-
-   ③ TAMBAH ALBUM BARU (mis. "Kuliah"):
-      1. Copy blok album (mis. hobi: { ... }) di bawah
-      2. Ganti key-nya: kuliah: { label: 'Kuliah', icon: '🎓', ... }
-      3. Di index.html, duplikat <div class="book-album-wrap">
-         lalu ganti data-book="kuliah" dan id="count-kuliah"
-      4. Tambah warna buku di CSS index.html:
-         .book-album[data-book="kuliah"] { --book-bg: ...; --book-spine: ...; }
-
-   ④ UBAH FOTO: ganti nilai src dengan nama file baru
-*/
+   … (data & logika galeri tetap sama seperti sebelumnya)
+   ═══════════════════════════════════════════════════ */
 
 /* ── Data foto per kategori ── */
 const galleryData = {
-
-  /* ── PROYEK ──────────────────────────────────────────────── */
   proyek: {
     label : 'Proyek',
     icon  : '🔧',
     color : '#1d4ed8',
     items : [
-      { src: 'img/port-proyek1.jpeg', title: 'TUGAS AKHIR',   desc: 'Konfigurasi Mikrotik' },
+      { src: 'img/port-proyek1.jpg', title: 'TUGAS AKHIR',   desc: 'Konfigurasi Mikrotik' },
       { src: 'img/port-proyek2.png',  title: 'Hasil akhir',  desc: 'Hasil akhir praktik tugas akhir' },
       { src: 'img/monitoring1.jpeg',  title: 'Monitoring Jaringan',  desc: 'Monitoring Jaringan Saat PKL'  },
-      /* Tambah proyek baru di sini:
-      { src: 'img/port-proyek3.jpg', title: 'Nama Proyek', desc: 'Deskripsi singkat' },
-      */
     ]
   },
-
-  /* ── PENDIDIKAN ─────────────────────────────────────────── */
   pendidikan: {
     label : 'Pendidikan',
     icon  : '🎓',
@@ -308,15 +352,8 @@ const galleryData = {
       { src: 'img/sd.jpg', title: 'Ngadirejo 1', desc: 'haha lali kabeh' },
       { src: 'img/smp.jpg', title: '1 Kartasura ', desc: 'a6' },
       { src: 'img/smk.jpg', title: '2 Surakarta', desc: '🥺🥹🥹' },
-      /* Tambah foto kenangan sekolah di sini:
-      { src: 'img/sd-wisuda.jpg',    title: 'Wisuda SD',    desc: 'Lulus dengan bangga'  },
-      { src: 'img/smp-kelas.jpg',    title: 'Foto Kelas',   desc: 'Kelas 9 terbaik'      },
-      { src: 'img/sma-lulus.jpg',    title: 'Kelulusan',    desc: 'Akhirnya lulus!'       },
-      */
     ]
   },
-
-  /* ── HOBI ────────────────────────────────────────────────── */
   hobi: {
     label : 'Hobi',
     icon  : '🌟',
@@ -326,36 +363,19 @@ const galleryData = {
       { src: 'img/port-hobi2.jpeg', title: 'Hiking lah',      desc: 'Mt.Bismo'      },
       { src: 'img/port-hobi3.jpeg', title: 'Belajar aesthetic',          desc: 'BI SOLO' },
       { src: 'img/port-hobi4.jpeg', title: 'Hiking lah', desc: 'Mt.Merbabu'     },
-      /* Tambah hobi baru di sini:
-      { src: 'img/hobi-baru.jpg', title: 'Judul Hobi', desc: 'Deskripsi' },
-      */
     ]
   }
-
-  /* Salin blok ini untuk album baru:
-  ,namaBaru: {
-    label : 'Nama Album',
-    icon  : '📷',
-    color : '#2563eb',
-    items : [
-      { src: 'img/foto1.jpg', title: 'Judul Foto', desc: 'Deskripsi' },
-    ]
-  }
-  */
 };
 
-/* Update jumlah foto di sampul buku */
 Object.keys(galleryData).forEach(key => {
   const el = document.getElementById('count-' + key);
   if (el) el.textContent = galleryData[key].items.length + ' foto';
 });
 
-/* ── State ── */
 let currentBook = null;
 let currentPage = 0;
 const perPage   = () => window.innerWidth <= 640 ? 1 : 2;
 
-/* ── Helpers ── */
 function activeItems() {
   if (!currentBook) return [];
   return galleryData[currentBook].items;
@@ -365,7 +385,6 @@ function activeColor() {
   return galleryData[currentBook].color;
 }
 
-/* ── Elemen ── */
 const bookShelf         = document.getElementById('book-shelf');
 const galleryPanel      = document.getElementById('gallery-panel');
 const galleryPanelTitle = document.getElementById('gallery-panel-title');
@@ -376,25 +395,20 @@ const galleryPrev       = document.getElementById('gallery-prev');
 const galleryNext       = document.getElementById('gallery-next');
 const galleryBack       = document.getElementById('gallery-back');
 
-/* ── Hitung total halaman ── */
 function totalPages() {
   const items = activeItems();
   if (!items.length) return 1;
   return Math.ceil(items.length / perPage());
 }
 
-/* ── Buka album ── */
 function openBook(key) {
   if (!galleryData[key]) return;
   currentBook = key;
   currentPage = 0;
-
   const data = galleryData[key];
   galleryPanelTitle.textContent = data.icon + '  ' + data.label;
   galleryPanelTitle.style.color = data.color;
-
   bookShelf.classList.add('bg-hidden');
-
   setTimeout(() => {
     galleryPanel.style.display = 'block';
     requestAnimationFrame(() => requestAnimationFrame(() => {
@@ -404,7 +418,6 @@ function openBook(key) {
   }, 320);
 }
 
-/* ── Tutup album ── */
 function closeBook() {
   galleryPanel.classList.remove('panel-active');
   setTimeout(() => {
@@ -414,63 +427,42 @@ function closeBook() {
   }, 420);
 }
 
-/* ── Render spread (2 atau 1 foto per halaman) ── */
 function renderSpread(animate) {
   if (!currentBook) return;
-
   const items    = activeItems();
   const color    = activeColor();
   const pp       = perPage();
   const startIdx = currentPage * pp;
   const pageItems = items.slice(startIdx, startIdx + pp);
-
-  /* Update header count */
   if (items.length === 0) {
     galleryPanelCount.textContent = 'Belum ada foto';
   } else {
     galleryPanelCount.textContent = 'Hal. ' + (currentPage + 1) + ' / ' + totalPages();
   }
-
-  /* Update nav buttons */
   galleryPrev.disabled = currentPage === 0;
   galleryNext.disabled = currentPage >= totalPages() - 1 || items.length === 0;
-
-  /* Empty state */
   if (items.length === 0) {
     gallerySpread.style.gridTemplateColumns = '1fr';
     gallerySpread.innerHTML = `
-      <div style="
-        display:flex; flex-direction:column; align-items:center; justify-content:center;
-        gap:.8rem; padding:3rem 1rem; text-align:center;
-        border:2px dashed rgba(255,255,255,.12); border-radius:14px;
-        min-height:220px;
-      ">
+      <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.8rem; padding:3rem 1rem; text-align:center; border:2px dashed rgba(255,255,255,.12); border-radius:14px; min-height:220px;">
         <span style="font-size:2.8rem; opacity:.5;">📷</span>
-        <div style="font-family:'Syne',sans-serif; font-weight:800; font-size:1rem; color:rgba(255,255,255,.5);">
-          Album Masih Kosong
-        </div>
+        <div style="font-family:'Syne',sans-serif; font-weight:800; font-size:1rem; color:rgba(255,255,255,.5);">Album Masih Kosong</div>
         <div style="font-size:.75rem; color:rgba(255,255,255,.3); max-width:280px; line-height:1.6;">
-          Tambahkan foto di
-          <code style="background:rgba(255,255,255,.08); padding:1px 6px; border-radius:4px;">js/main.js</code>
-          pada bagian
-          <code style="background:rgba(255,255,255,.08); padding:1px 6px; border-radius:4px;">${currentBook}: { items: [ ... ] }</code>
+          Tambahkan foto di <code style="background:rgba(255,255,255,.08); padding:1px 6px; border-radius:4px;">js/main.js</code>
+          pada bagian <code style="background:rgba(255,255,255,.08); padding:1px 6px; border-radius:4px;">${currentBook}: { items: [ ... ] }</code>
         </div>
-      </div>
-    `;
+      </div>`;
     galleryDots.innerHTML = '';
     return;
   }
-
   gallerySpread.style.gridTemplateColumns = pp === 1 ? '1fr' : '1fr 1fr';
   gallerySpread.innerHTML = '';
-
   pageItems.forEach((item, i) => {
     const pol = document.createElement('div');
-    pol.className  = 'gallery-polaroid';
-    pol.role       = 'listitem';
-    pol.title      = 'Klik untuk perbesar — ' + item.title;
+    pol.className = 'gallery-polaroid';
+    pol.role = 'listitem';
+    pol.title = 'Klik untuk perbesar — ' + item.title;
     pol.dataset.cursorLabel = '🔍 Lihat';
-
     pol.innerHTML = `
       <img src="${item.src}" alt="${item.title}" loading="lazy">
       <div class="gal-placeholder" style="display:none; background:linear-gradient(135deg,${color}28,${color}55);">
@@ -479,15 +471,12 @@ function renderSpread(animate) {
       <div class="gallery-polaroid-info">
         <div class="gal-pol-title">${item.title}</div>
         <div class="gal-pol-desc">${item.desc}</div>
-      </div>
-    `;
-
+      </div>`;
     const img = pol.querySelector('img');
     img.addEventListener('error', () => {
       img.style.display = 'none';
       pol.querySelector('.gal-placeholder').style.display = 'flex';
     });
-
     pol.addEventListener('mouseenter', () => {
       document.body.classList.add('hovering');
       if (cursorLabel) cursorLabel.textContent = '🔍';
@@ -496,39 +485,32 @@ function renderSpread(animate) {
       document.body.classList.remove('hovering');
       if (cursorLabel) cursorLabel.textContent = '';
     });
-
     pol.addEventListener('click', () => {
       if (img.style.display !== 'none') openLightbox(item.src);
     });
-
     const baseRot = i % 2 === 0 ? 'rotate(-2deg)' : 'rotate(1.5deg) translateY(10px)';
-    pol.style.opacity    = '0';
-    pol.style.transform  = `${baseRot} translateY(24px)`;
+    pol.style.opacity = '0';
+    pol.style.transform = `${baseRot} translateY(24px)`;
     pol.style.transition = `opacity .38s ${i * 90}ms ease, transform .38s ${i * 90}ms cubic-bezier(.16,1,.3,1), box-shadow .3s ease`;
-
     gallerySpread.appendChild(pol);
-
     requestAnimationFrame(() => requestAnimationFrame(() => {
-      pol.style.opacity   = '1';
+      pol.style.opacity = '1';
       pol.style.transform = baseRot;
     }));
-
     pol.addEventListener('mouseenter', () => {
       pol.style.transform = 'rotate(0deg) scale(1.05) translateY(-10px)';
-      pol.style.zIndex    = '10';
+      pol.style.zIndex = '10';
     });
     pol.addEventListener('mouseleave', () => {
       pol.style.transform = baseRot;
-      pol.style.zIndex    = '';
+      pol.style.zIndex = '';
     });
   });
-
-  /* Render dot indicators */
   galleryDots.innerHTML = '';
   const total = totalPages();
   for (let i = 0; i < total; i++) {
     const dot = document.createElement('button');
-    dot.className        = 'g-dot' + (i === currentPage ? ' g-dot-active' : '');
+    dot.className = 'g-dot' + (i === currentPage ? ' g-dot-active' : '');
     dot.style.background = i === currentPage ? color : '';
     dot.setAttribute('role', 'tab');
     dot.setAttribute('aria-label', 'Halaman ' + (i + 1));
@@ -538,33 +520,25 @@ function renderSpread(animate) {
   }
 }
 
-/* ── Navigasi halaman ── */
 function goToPage(page) {
   if (!currentBook || page === currentPage) return;
-
   const dir = page > currentPage ? 1 : -1;
-
   gallerySpread.style.transition = 'opacity .22s ease, transform .22s ease';
-  gallerySpread.style.opacity    = '0';
-  gallerySpread.style.transform  = `translateX(${dir * 38}px)`;
-
+  gallerySpread.style.opacity = '0';
+  gallerySpread.style.transform = `translateX(${dir * 38}px)`;
   setTimeout(() => {
     currentPage = page;
-
     gallerySpread.style.transition = 'none';
-    gallerySpread.style.transform  = `translateX(${-dir * 38}px)`;
-
+    gallerySpread.style.transform = `translateX(${-dir * 38}px)`;
     renderSpread(true);
-
     requestAnimationFrame(() => requestAnimationFrame(() => {
       gallerySpread.style.transition = 'opacity .34s cubic-bezier(.16,1,.3,1), transform .34s cubic-bezier(.16,1,.3,1)';
-      gallerySpread.style.opacity    = '1';
-      gallerySpread.style.transform  = 'translateX(0)';
+      gallerySpread.style.opacity = '1';
+      gallerySpread.style.transform = 'translateX(0)';
     }));
   }, 220);
 }
 
-/* ── Event listeners navigasi ── */
 galleryPrev?.addEventListener('click', () => {
   if (currentPage > 0) goToPage(currentPage - 1);
 });
@@ -573,20 +547,17 @@ galleryNext?.addEventListener('click', () => {
 });
 galleryBack?.addEventListener('click', closeBook);
 
-/* ── Buku diklik ── */
 document.querySelectorAll('.book-album').forEach(book => {
-  book.addEventListener('click',   () => openBook(book.dataset.book));
+  book.addEventListener('click', () => openBook(book.dataset.book));
   book.addEventListener('keydown', e => {
     if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openBook(book.dataset.book); }
   });
   book.dataset.cursorLabel = '📖 Buka';
 });
 
-/* ── Keyboard navigation ── */
 document.addEventListener('keydown', e => {
   if (!currentBook) return;
   if (document.querySelector('.lightbox.active')) return;
-
   if (e.key === 'ArrowRight' && currentPage < totalPages() - 1) {
     goToPage(currentPage + 1);
   } else if (e.key === 'ArrowLeft' && currentPage > 0) {
@@ -596,7 +567,6 @@ document.addEventListener('keydown', e => {
   }
 });
 
-/* ── Touch/swipe support ── */
 let touchStartX = 0;
 gallerySpread?.addEventListener('touchstart', e => {
   touchStartX = e.touches[0].clientX;
@@ -608,7 +578,6 @@ gallerySpread?.addEventListener('touchend', e => {
   else if (diff < 0 && currentPage > 0) goToPage(currentPage - 1);
 }, { passive: true });
 
-/* ── Re-render saat resize ── */
 let resizeTimer;
 window.addEventListener('resize', () => {
   clearTimeout(resizeTimer);
@@ -628,10 +597,8 @@ const lightbox = document.createElement('div');
 lightbox.className = 'lightbox';
 lightbox.innerHTML = `<button class="lightbox-close">×</button><img class="lightbox-img" src="" alt="Preview">`;
 document.body.appendChild(lightbox);
-
 const lightboxImg   = lightbox.querySelector('.lightbox-img');
 const lightboxClose = lightbox.querySelector('.lightbox-close');
-
 function openLightbox(src) {
   lightboxImg.src = src;
   lightbox.classList.add('active');
@@ -641,13 +608,11 @@ function closeLightbox() {
   lightbox.classList.remove('active');
   document.body.style.overflow = '';
 }
-
 lightboxClose.addEventListener('click', closeLightbox);
 lightbox.addEventListener('click', e => { if (e.target === lightbox) closeLightbox(); });
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && lightbox.classList.contains('active')) closeLightbox();
 });
-
 const oldModal = document.getElementById('modal-bg');
 if (oldModal) oldModal.remove();
 
@@ -659,15 +624,12 @@ document.getElementById('contact-form')?.addEventListener('submit', async functi
   const btn  = this.querySelector('button[type=submit]');
   const orig = btn.innerHTML;
   const action = this.action;
-
   if (!this.nama.value.trim() || !this.email.value.trim() || !this.pesan.value.trim()) {
     showToast('Isi dulu ya semua field! ✏️');
     return;
   }
-
   btn.innerHTML = '⏳ Mengirim...';
   btn.disabled  = true;
-
   if (!action || action.includes('xxxxxxxx') || action.endsWith('#')) {
     setTimeout(() => {
       btn.innerHTML = '✓ Terkirim!';
@@ -677,7 +639,6 @@ document.getElementById('contact-form')?.addEventListener('submit', async functi
     }, 1000);
     return;
   }
-
   try {
     const res = await fetch(action, {
       method: 'POST',
@@ -706,7 +667,6 @@ document.getElementById('contact-form')?.addEventListener('submit', async functi
   }
 });
 
-/* ── TOAST ── */
 function showToast(msg) {
   const toast    = document.getElementById('toast');
   const toastMsg = document.getElementById('toast-msg');
@@ -717,7 +677,6 @@ function showToast(msg) {
   toast._timer = setTimeout(() => toast.classList.remove('show'), 4000);
 }
 
-/* ── SMOOTH SCROLL ── */
 document.querySelectorAll('a[href^="#"]').forEach(a => {
   a.addEventListener('click', e => {
     const target = document.querySelector(a.getAttribute('href'));
@@ -725,7 +684,6 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
   });
 });
 
-/* ── PARALLAX BG SHAPES ── */
 window.addEventListener('scroll', () => {
   const y = window.scrollY;
   const s1 = document.querySelector('.shape-1'), s2 = document.querySelector('.shape-2');
@@ -733,18 +691,6 @@ window.addEventListener('scroll', () => {
   if (s2) s2.style.transform = `translateY(${-y*0.1}px)`;
 }, { passive: true });
 
-/* ── CURSOR LABEL FOR CONTACT CHIPS ── */
-document.querySelectorAll('.contact-chip').forEach(chip => {
-  const icon = chip.querySelector('.contact-chip-icon');
-  const emoji = icon?.textContent?.trim();
-  const labelMap = {'📧':'Email ✉','📸':'Instagram','🐙':'GitHub','📘':'Facebook','🔗':'LinkedIn'};
-  chip.dataset.cursorLabel = labelMap[emoji] || 'Visit';
-});
-
-/* ── INJECT MISSING ELEMENTS ── */
-if (!document.getElementById('cursor-dot')) {
-  const dot = document.createElement('div'); dot.id='cursor-dot'; document.body.appendChild(dot);
-}
 const bgShapes = document.querySelector('.bg-shapes');
 if (bgShapes && !bgShapes.querySelector('.shape-4')) {
   const s4 = document.createElement('div'); s4.className='shape shape-4'; bgShapes.appendChild(s4);
