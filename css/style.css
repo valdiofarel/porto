@@ -5,11 +5,18 @@
    Thumbnail Grid + Lightbox
    ==================================================== */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; font-size: 16px; }
+html {
+  scroll-behavior: smooth;
+  font-size: 16px;
+  min-height: 100%;
+  background: linear-gradient(135deg, #ffffff 0%, #eef1ff 30%, #fffde8 60%, #f0f4ff 85%, #ffffff 100%);
+  background-size: 400% 400%;
+  animation: global-bg-shift 14s ease infinite;
+}
 
 :root {
   /* ── PALETTE: Kuning & Biru ── */
-  --bg:           #ffffff;
+  --bg:           transparent;
   --bg-2:         #f5f7ff;
   --bg-3:         #e8ecf8;
   --bg-card:      #ffffff;
@@ -56,6 +63,7 @@ html { scroll-behavior: smooth; font-size: 16px; }
 }
 
 body {
+  background: transparent;
   color: var(--text);
   font-family: var(--font-body);
   line-height: 1.7;
@@ -155,12 +163,7 @@ nav.scrolled { padding: 0.55rem 3%; box-shadow: 0 4px 30px rgba(59,53,212,0.12),
 /* ─── SECTIONS ─── */
 section { position: relative; z-index: 1; padding: 4.5rem 3%; }
 
-/* ── Global animated gradient bg (semua section) ── */
-body {
-  background: linear-gradient(135deg, #ffffff 0%, #eef1ff 30%, #fffde8 60%, #f0f4ff 85%, #ffffff 100%);
-  background-size: 400% 400%;
-  animation: global-bg-shift 14s ease infinite;
-}
+/* ── Global animated gradient — didefinisikan di html element ── */
 @keyframes global-bg-shift {
   0%   { background-position: 0% 30%; }
   33%  { background-position: 100% 60%; }
