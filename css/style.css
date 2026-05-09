@@ -56,7 +56,6 @@ html { scroll-behavior: smooth; font-size: 16px; }
 }
 
 body {
-  background: var(--bg);
   color: var(--text);
   font-family: var(--font-body);
   line-height: 1.7;
@@ -155,6 +154,19 @@ nav.scrolled { padding: 0.55rem 3%; box-shadow: 0 4px 30px rgba(59,53,212,0.12),
 
 /* ─── SECTIONS ─── */
 section { position: relative; z-index: 1; padding: 4.5rem 3%; }
+
+/* ── Global animated gradient bg (semua section) ── */
+body {
+  background: linear-gradient(135deg, #ffffff 0%, #eef1ff 30%, #fffde8 60%, #f0f4ff 85%, #ffffff 100%);
+  background-size: 400% 400%;
+  animation: global-bg-shift 14s ease infinite;
+}
+@keyframes global-bg-shift {
+  0%   { background-position: 0% 30%; }
+  33%  { background-position: 100% 60%; }
+  66%  { background-position: 50% 100%; }
+  100% { background-position: 0% 30%; }
+}
 .container { max-width: 1340px; margin: 0 auto; }
 
 .section-chip {
@@ -202,15 +214,8 @@ section { position: relative; z-index: 1; padding: 4.5rem 3%; }
   min-height: 100vh;
   display: flex;
   align-items: center;
-  background: linear-gradient(135deg, #ffffff 0%, #eef1ff 35%, #fffbe6 70%, #ffffff 100%);
-  background-size: 300% 300%;
-  animation: hero-bg-shift 10s ease infinite;
+  background: transparent;
   position: relative;
-}
-@keyframes hero-bg-shift {
-  0%   { background-position: 0% 50%; }
-  50%  { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
 }
 .hero-layout { max-width: 1340px; margin: 0 auto; display: grid; grid-template-columns: 1fr 320px; gap: 5rem; align-items: center; padding-top: 5rem; width: 100%; }
 
@@ -316,6 +321,10 @@ input[type="submit"], input[type="button"] {
   margin-bottom: 0.3rem;
 }
 
+.hero-name-farel-wrap {
+  display: inline-block;
+}
+
 .hero-name-farel {
   display: block;
   font-family: var(--font-display);
@@ -323,21 +332,9 @@ input[type="submit"], input[type="button"] {
   font-weight: 800;
   letter-spacing: -0.02em;
   line-height: 1;
-
-  /* Warna dasar transparan untuk gradien */
-  color: transparent;
-  -webkit-text-fill-color: transparent;
-
-  /* Gradien biru-ungu-putih */
-  background: linear-gradient(135deg, #248eea, #7c3aed, #ffffff, #7c3aed, #248eea);
-  background-size: 300% 300%;
-  -webkit-background-clip: text;
-  background-clip: text;
-
-  /* Animasi bergerak */
-  animation: gradient-move 5s ease infinite;
+  color: var(--text);
+  animation: farel-slide 0.6s var(--ease-out) 0.1s both;
 }
-
 @keyframes farel-slide {
   0%   { opacity: 0; transform: translateY(16px); }
   100% { opacity: 1; transform: translateY(0); }
@@ -347,15 +344,12 @@ input[type="submit"], input[type="button"] {
 .hero-desc {
   color: var(--muted);
   margin-bottom: 1.6rem;
-  max-width: 720px;
+  max-width: 560px;
   line-height: 1.85;
   font-size: 0.97rem;
   font-weight: 500;
   font-family: var(--font-body);
   letter-spacing: 0.01em;
-  text-align: justify;
-
-
 }
 
 /* ─── HERO QUOTE ─── */
@@ -369,9 +363,9 @@ input[type="submit"], input[type="button"] {
   color: var(--text);
   margin-bottom: 2rem;
   padding: 0.75rem 1.1rem;
-  background: var(--white);
-  border: 1.5px solid rgb(0, 115, 255);
-   border-left: 4px solid rgb(0, 115, 255);
+  background: var(--yellow-pale);
+  border: 1.5px solid rgba(255,224,51,0.45);
+  border-left: 4px solid var(--yellow-dark);
   border-radius: 0 var(--r-md) var(--r-md) 0;
   max-width: 500px;
 }
@@ -431,7 +425,7 @@ input[type="submit"], input[type="button"] {
 
 /* ─── ABOUT ─── */
 #about {
-  background: linear-gradient(160deg, #f5f7ff 0%, #ffffff 60%, #fafbff 100%);
+  background: transparent;
   position: relative;
   overflow: hidden;
 }
@@ -616,9 +610,9 @@ input[type="submit"], input[type="button"] {
   align-items: flex-start;
   gap: 1rem;
   padding: 1rem 1.2rem;
-    background: var(--white);
-  border: 1.5px solid rgb(0, 115, 255);
-   border-left: 4px solid rgb(0, 115, 255);
+  background: var(--yellow-pale);
+  border: 1.5px solid rgba(255,224,51,0.5);
+  border-left: 4px solid var(--yellow-dark);
   border-radius: 0 var(--r-md) var(--r-md) 0;
   margin-bottom: 1.5rem;
   font-size: 0.9rem;
@@ -1114,17 +1108,4 @@ footer::before { content: ''; position: absolute; top: 0; left: 0; right: 0; hei
 }
 .pair-yellow {
   color: #fbbf24;
-}
-.youtube {
-  background: #FF0000;
-  color: #fff;
-}
-
-.youtube:hover {
-  box-shadow: 0 8px 25px rgba(255, 0, 0, 0.5);
-}
-@keyframes gradient-move {
-  0%   { background-position: 0% 50%; }
-  50%  { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
 }
